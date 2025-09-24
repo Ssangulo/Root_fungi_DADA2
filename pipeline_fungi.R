@@ -611,6 +611,9 @@ exdata <- read.csv("ITS_metadata_with_habitat.csv")
 str(exdata)
 
 ## function to convert data to list of matrices split by blank extract batch
+#Modify "sample.info.nopool" and "nopool.lulu.index" for each dataset!! 
+#I am hardcoring each sample.info in each function, so each function must be used only with the correct object
+
 ntc.to.blankcontrol <-  function (x){
   z <- x
   sample.info.nopool <- dplyr::bind_rows(nopool.lulu.index, .id = "column_label")
@@ -666,6 +669,7 @@ pspool.lulu.ntc.blank.fieldb <- dplyr::bind_rows(pspool.lulu.ntc.blankC2, .id = 
 
 
 ## function to group samples into lists via field blanks
+#Modify "sample.info.nopool" and "nopool.lulu.index" for each dataset!!
 
 exblank.to.fieldblankcontrol <-  function (x){
   z <- x
@@ -693,24 +697,27 @@ nopool.lulu.ntc.blank.fieldblist <- nopool.lulu.ntc.blank.fieldblist[-1]
 pool.lulu.ntc.blank.fieldblist <- pool.lulu.ntc.blank.fieldblist[-1]
 pspool.lulu.ntc.blank.fieldblist <- pspool.lulu.ntc.blank.fieldblist[-1]
 
-#unique(exdata$Fieldcontrol) # copy in blank extract names
+unique(exdata$Fieldcontrol) # copy in blank extract names
 
-#lets skip this function because my soil samples are not field controls and normalizing here do not make sense
+#Applying this function to remove OTUs (OTU count) present in soil controls by sampling location. This function is only applied for the root-only, dataset. 
 
-#fb.blank.change <- function(x){
-# mind <- apply(x[grep("S_S1_1|S_S1_2|S_S1_3|S_S1_4|S_S1_5|S_S1_6|S_S1_7|S_S2_1|S_S2_2|S_S2_3|S_S2_4|S_S2_5", rownames(x)), ], 2, function(y) max(y, na.rm = TRUE))
-#x1 <- sweep(x, 2, mind)
-#x1 <- pmax(x1,0)
-# return(x1)
-#}
+unique(exdata$Fieldcontrol) # copy in blank extract names
 
-#nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist, fb.blank.change)
-#pool.lulu.ntc.blank.fieldblist1 <- lapply(pool.lulu.ntc.blank.fieldblist, fb.blank.change)
-#pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist, fb.blank.change)
+fb.blank.change <- function(x){
+  mind <- apply(x[grep("S_S1_1|S_S1_2|S_S1_3|S_S1_4|S_S1_5|S_S1_6|S_S1_7|S_S2_1|S_S2_2|S_S2_3|S_S2_4|S_S2_5", rownames(x)), ], 2, function(y) max(y, na.rm = TRUE))
+  x1 <- sweep(x, 2, mind)
+  x1 <- pmax(x1,0)
+  return(x1)
+}
 
-nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist,function(x) replace(x, !is.finite(x), 0))
-pool.lulu.ntc.blank.fieldblist1 <- lapply(pool.lulu.ntc.blank.fieldblist, function(x) replace(x, !is.finite(x), 0))
-pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist, function(x) replace(x, !is.finite(x), 0))
+nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist, fb.blank.change)
+pool.lulu.ntc.blank.fieldblist1 <- lapply(pool.lulu.ntc.blank.fieldblist, fb.blank.change)
+pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist, fb.blank.change)
+
+nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist1,function(x) replace(x, !is.finite(x), 0))
+pool.lulu.ntc.blank.fieldblist1 <- lapply(pool.lulu.ntc.blank.fieldblist1, function(x) replace(x, !is.finite(x), 0))
+pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist1, function(x) replace(x, !is.finite(x), 0))
+
 
 ## Merging data back to just biological samples
 ##### The same can occur for field blanks - merging dataset again
@@ -730,26 +737,46 @@ nopool.lulu.ntc.blank.fielddone<- nopool.lulu.ntc.blank.fielddone[,-1]
 pool.lulu.ntc.blank.fielddone<- pool.lulu.ntc.blank.fielddone[,-1]
 pspool.lulu.ntc.blank.fielddone<-  pspool.lulu.ntc.blank.fielddone[,-1]
 
-## need to remove non-biological samples from dataframes and split into lists of individual samples for replicate control and combination etc
-
+## removing soil samples from dataframes and split into lists of individual samples for replicate control and combination etc
+#Again, this function is only valid for the root-only (and soil OTU removed) dataset. 
 unique(rownames(nopool.lulu.ntc.blank.fielddone))
 
-#Here as I do not have any sample named with "fb" this function is not removing my samples
-controlledblanks.to.samplelist <-  function (x){
+controlledblanks.to.samplelist <- function(x) {
   minusNTCBLANK.sample <- x
-  minusNTCBLANK.sample <- minusNTCBLANK.sample[!grepl("fb", rownames(minusNTCBLANK.sample)),]
-  minusNTCBLANK.sample <-  merge(minusNTCBLANK.sample, sample.info.nopool ,by =  'row.names', all.x=TRUE)
+  
+  # Using pattern matching (grep) instead of exact matching
+  samples_to_remove <- c("S_S1_1", "S_S1_2", "S_S1_3", "S_S1_4", "S_S1_5", 
+                         "S_S1_6", "S_S1_7", "S_S2_1", "S_S2_2", "S_S2_3", 
+                         "S_S2_4", "S_S2_5")
+  
+  # Use grep to match patterns correctly and remove rows
+  rows_to_remove <- grep(paste(samples_to_remove, collapse = "|"), rownames(minusNTCBLANK.sample))
+  minusNTCBLANK.sample <- minusNTCBLANK.sample[-rows_to_remove, , drop = FALSE]
+  
+  # Hardcoded metadata for nopool
+  sample.info.nopool <- dplyr::bind_rows(nopool.lulu.index, .id = "column_label")
+  row.names(sample.info.nopool) <- sample.info.nopool$full
+  
+  # Merge and process
+  minusNTCBLANK.sample <- merge(minusNTCBLANK.sample, sample.info.pspool, by = 'row.names', all.x = TRUE)
   rownames(minusNTCBLANK.sample) <- minusNTCBLANK.sample$Row.names
   minusNTCBLANK.sample <- split(minusNTCBLANK.sample, minusNTCBLANK.sample$sample)
-  dropnames <- colnames(minusNTCBLANK.sample[[2]][, c(which(nchar(colnames(minusNTCBLANK.sample[[2]]))< 30))])
+  
+  # Drop columns with names shorter than 30 characters
+  dropnames <- colnames(minusNTCBLANK.sample[[2]][, c(which(nchar(colnames(minusNTCBLANK.sample[[2]])) < 30))])
   minusNTCBLANK.sample <- lapply(minusNTCBLANK.sample, function(x) x[!(names(x) %in% dropnames)])
+  
   return(minusNTCBLANK.sample)
 }
-
 
 nopool.lulu.controlled_1 <- controlledblanks.to.samplelist(nopool.lulu.ntc.blank.fielddone)
 pool.lulu.controlled_1 <- controlledblanks.to.samplelist(pool.lulu.ntc.blank.fielddone)
 pspool.lulu.controlled_1 <-  controlledblanks.to.samplelist(pspool.lulu.ntc.blank.fielddone)
+
+str(nopool.lulu.controlled_1)
+head(rownames(nopool.lulu.controlled_1))
+
+View(sample.info.nopool)
 
 
 ## if you view just these raw data, some samples and some replicates did not sequence well  
