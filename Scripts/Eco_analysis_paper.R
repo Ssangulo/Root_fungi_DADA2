@@ -230,6 +230,12 @@ options(device = function(...) pdf(NULL))
 on.exit(options(device = old_dev), add = TRUE)
 
 
+#Visualizing sampling design
+
+table(k$site, k$habitat)
+table(k$elevation_adj,k$habitat)
+table(k$habitat)
+
 
 # Merging the two samples (replicates) from each individual (sum of OTU counts) for pseudoreplication-sensitive analyses: PERMANOVA, dbRDA, beta-regression and NRI/NTI
 # Extract OTU table and sample data
@@ -398,7 +404,7 @@ dev.off()
 
 
 
-#PCoA on bray-curtis dissimilarities
+#PCoA on bray-curtos dissimilarities
 
 ps <- alldat.N[[2]]
 
@@ -455,8 +461,6 @@ ggsave("/data/lastexpansion/danieang/Plots2/PCoA_N2_noMA.png",
 
 #Phylogenetic diversity tree etc
 
-##############
-
 # Create phylogenetic data with soils sequences from O_Helotiales -> screen helotiales
 
 helotiales <- alldat[[2]]  %>% tax_select(tax_list = "o__Helotiales")
@@ -472,9 +476,9 @@ fit <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE, optNni=FALSE, 
 
 tree_data_helotiales <- merge_phyloseq(helotiales, fit$tree)
 
-## tree_data_sebacinales ...
+## tree_data_sebacinales
 
-#PD tree with rg2 no soil dataset (soil reads removed) -> this one used for analysis
+#PD tree with rg2 no soil dataset (soil reads removed)
 
 align <- AlignSeqs(DNAStringSet(refseq(alldat.N[[2]])), anchor=NA)
 
@@ -709,7 +713,7 @@ bdw_a; bduw_a
 
 
 #
-##########
+
 
 ################
 
@@ -775,6 +779,120 @@ print(p_TD)
 
 ggsave("/data/lastexpansion/danieang/Plots2/iNEXT_TD_by_habitat.png",
        p_TD, width = 10, height = 6, dpi = 800, bg = "white")
+
+
+
+
+
+
+######Exploring these... but not using them
+#Now extracting asymptotic estimates per site
+
+library(purrr)
+
+# Map iNEXT.3D TD labels -> Hill number q
+.q_map <- c("Species richness" = 0, "Shannon diversity" = 1, "Simpson diversity" = 2)
+
+extract_tdasy <- function(out, site) {
+  stopifnot("TDAsyEst" %in% names(out))
+  out$TDAsyEst %>%
+    mutate(
+      site = site,
+      elevation = as.numeric(gsub("m", "", Assemblage)),
+      q = .q_map[qTD],
+      Estimate = TD_asy,
+      LCL = qTD.LCL,
+      UCL = qTD.UCL
+    ) %>%
+    select(site, elevation, q, Estimate, LCL, UCL) %>%
+    arrange(q, elevation)
+}
+
+site_objs <- list(
+  NV  = output_TD_inci_NV,
+  DOM = output_TD_inci_DOM,
+  BEL = output_TD_inci_BEL,
+  MA  = output_TD_inci_MA
+)
+
+all_asym <- imap_dfr(site_objs, extract_tdasy) %>%
+  mutate(
+    q = factor(q, levels = c(0,1,2),
+               labels = c("q = 0 (richness)", "q = 1 (Shannon)", "q = 2 (Simpson)"))
+  )
+
+#Plot diversity vs elevations 
+
+p <- ggplot(all_asym, aes(x = Estimate, y = elevation, color = site, shape = site, group = site)) +
+  geom_errorbarh(aes(xmin = LCL, xmax = UCL), height = 0) +
+  geom_point(size = 3) +
+  geom_line(linewidth = 0.8) +
+  facet_wrap(~ q, scales = "free_x") +
+  labs(
+    x = "Asymptotic α-diversity (Hill numbers)",
+    y = "Elevation (m)",
+    title = "Asymptotic iNEXT (TD) across sites and elevations"
+  ) +
+  theme_minimal(base_size = 13) +
+  scale_color_brewer(palette = "Dark2")
+
+print(p)
+
+ggsave("/data/lastexpansion/danieang/plots/inext_asymptotes_vs_elevation.png", p, width = 10, height = 6, dpi = 600)
+
+
+
+
+#Trying different apporach - extracting asymptotes 
+library(dplyr)
+library(purrr)
+library(ggplot2)
+
+# --- 1) Extract asymptotes per site from TDAsyEst ---
+extract_tdasy <- function(out, site) {
+  out$TDAsyEst %>%
+    transmute(
+      site = site,
+      elevation = as.numeric(gsub("[^0-9.]", "", Assemblage)),
+      q = factor(qTD, levels = c("Species richness","Shannon diversity","Simpson diversity"),
+                 labels = c("q = 0 (richness)", "q = 1 (Shannon)", "q = 2 (Simpson)")),
+      Estimate = TD_asy,
+      LCL = qTD.LCL, UCL = qTD.UCL
+    ) %>%
+    arrange(q, elevation)
+}
+
+site_objs <- list(
+  NV  = output_TD_inci_NV,
+  DOM = output_TD_inci_DOM,
+  BEL = output_TD_inci_BEL,
+  MA  = output_TD_inci_MA
+)
+
+all_asym <- imap_dfr(site_objs, extract_tdasy)
+
+# --- 2) Plot: alpha diversity (x) vs elevation (y), with LOESS band + points/paths + point CIs ---
+p <- ggplot(all_asym, aes(x = Estimate, y = elevation, color = site, group = site)) +
+  # smooth curve per site within each q, with its CI band
+  geom_smooth(aes(fill = site), method = "loess", se = TRUE, span = 0.8, alpha = 0.15, linewidth = 0.7) +
+  # connect elevations within site (the "tending to asymptote" trajectory)
+  geom_path(linewidth = 0.9) +
+  # point-wise CI (horizontal) from iNEXT asymptotes
+  geom_errorbarh(aes(xmin = LCL, xmax = UCL), height = 0) +
+  geom_point(size = 3, shape = 21, fill = "white", stroke = 1) +
+  facet_wrap(~ q, scales = "free_x") +
+  labs(x = "Asymptotic α-diversity (Hill numbers)",
+       y = "Elevation (m)",
+       title = "α-diversity vs elevation (asymptotic iNEXT estimates with LOESS bands)") +
+  theme_minimal(base_size = 13) +
+  scale_color_brewer(palette = "Dark2") +
+  guides(fill = "none")
+
+print(p)
+# Save with white background
+# ggsave("/data/lastexpansion/danieang/plots/inext_alpha_vs_elev_loess.png", p, width=10, height=6, dpi=600, bg="white")
+# ggsave("/data/lastexpansion/danieang/plots/inext_alpha_vs_elev_loess.pdf", p, width=10, height=6)
+
 
 
 

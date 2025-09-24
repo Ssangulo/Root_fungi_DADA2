@@ -1,0 +1,235 @@
+---
+title: "Eco_analysis"
+format: html
+editor: visual
+---
+
+## Quarto
+
+All packages used
+
+```{r}
+library(phyloseq)
+library(microViz)
+library(DECIPHER)
+library(phangorn)
+library(iNEXT.3D)
+library(rlist)
+library(vegan)
+library(fantaxtic)
+library(tidytree) #Need version 0.4.2 for functioning properly
+library(ggplot2)
+library(ggordiplots)
+library(VennDiagram)
+library(venn)
+library(dplyr)
+library(dada2)
+library(ape)
+library(picante)
+
+```
+
+First tyding up objects
+
+```{r}
+
+
+
+np2 <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg2.poolps.rds")
+np3 <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg3.poolps.rds")
+np4 <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg4.poolps.rds")
+
+np1.N <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/poolps.dada2.nosoil.rds")
+np2.N <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg2.poolps_tax_nosoil.rds")
+np3.N <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg3.poolps_tax_nosoil.rds")
+np4.N <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg4.poolps_tax_nosoil.rds")
+
+otu_tab<- otu_table(np2)  
+dim(otu_tab)
+
+new_metadata <- read.csv("/data/lastexpansion/danieang/data/trimmed/mergedPlates/ITS_metadata_Soil.csv", row.names = 1)
+
+sample_data(np1) <- sample_data(new_metadata)
+sample_data(np2) <- sample_data(new_metadata)
+sample_data(np3) <- sample_data(new_metadata)
+sample_data(np4) <- sample_data(new_metadata)
+
+sample_data(np1.N) <- sample_data(new_metadata)
+sample_data(np2.N) <- sample_data(new_metadata)
+sample_data(np3.N) <- sample_data(new_metadata)
+sample_data(np4.N) <- sample_data(new_metadata)
+
+
+library(phyloseq)
+
+alldat <- list(np1, np2, np3, np4) #Full dataset
+alldat.N <- list(np1.N, np2.N, np3.N, np4.N) #root samples only, soil reads removed
+alldat.root <- list(np1, np2, np3, np4) #root samples only, no remmoving soil reads
+
+names(alldat) <- c("nofilt", "rg2", "rg3", "rg4")
+names(alldat.N) <- c("nofilt", "rg2", "rg3", "rg4")
+names(alldat.root) <- c("nofilt", "rg2", "rg3", "rg4")
+
+#Removing 12 soil samples from list alldat.root
+alldat.root <- lapply(alldat.root, function(ps_obj) {
+  subset_samples(ps_obj, Individual != "S")
+})
+
+
+library(microViz)
+
+alldat <- lapply(alldat, function(x) phyloseq_validate(x, remove_undetected = TRUE))
+alldat.N <- lapply(alldat.N, function(x) phyloseq_validate(x, remove_undetected = TRUE))
+alldat.root <- lapply(alldat.root, function(x) phyloseq_validate(x, remove_undetected = TRUE))
+
+
+alldat
+alldat.N
+
+
+
+## Basic look at data
+seqs <- rowSums(otu_table(np2.N))
+min(colSums(otu_table(np2.N)))
+otus <- apply(otu_table(np2.N), MARGIN=1, FUN=function(x) {length( x[x > 0] )} )
+plot(seqs, otus)
+
+### Some rarefaction to look at library depth adequacy
+library(vegan)
+ttab <- t(otu_table(np1))
+class(ttab) <- "matrix" 
+raremin <- min(rowSums(ttab))
+rarecurve(ttab, step = 100, sample = raremin, col = "blue", label = FALSE)
+
+### rareyfing data - but checking the minimum sequence count per smaple first sentence # samples are rows
+min(rowSums(otu_table(alldat[[1]])))
+min(rowSums(otu_table(alldat[[2]])))
+min(rowSums(otu_table(alldat[[3]])))
+min(rowSums(otu_table(alldat[[4]])))
+## need to get rid of samples in the rg4 object with zero reads - removing 8 samples
+k <- prune_samples(sample_sums(alldat[[4]]) > 0, alldat[[4]])
+alldat[[4]] <- k
+
+#Same process with Nosoil datasets
+min(rowSums(otu_table(alldat.N[[1]])))
+min(rowSums(otu_table(alldat.N[[2]])))
+min(rowSums(otu_table(alldat.N[[3]])))
+min(rowSums(otu_table(alldat.N[[4]])))
+#Removing samples with zero reads in all 4 .N objects -> Removing 12 empty soil samples from each + unknown from np4.N
+k1 <- prune_samples(sample_sums(alldat.N[[1]]) > 0, alldat.N[[1]])
+alldat.N[[1]] <- k1
+k2 <- prune_samples(sample_sums(alldat.N[[2]]) > 0, alldat.N[[2]])
+alldat.N[[2]] <- k2
+k3 <- prune_samples(sample_sums(alldat.N[[3]]) > 0, alldat.N[[3]])
+alldat.N[[3]] <- k3
+k4 <- prune_samples(sample_sums(alldat.N[[4]]) > 0, alldat.N[[4]])
+alldat.N[[4]] <- k4 #Removed 10 more samples in this object
+
+
+
+## checking again
+min(rowSums(otu_table(alldat.root[[4]]))) #lame
+hist(rowSums(otu_table(alldat[[4]]))) ## need to filter out samples with less than 100,000 sequences
+k <- prune_samples(sample_sums(alldat[[4]]) > 100000, alldat[[4]])
+alldat[[4]] <- k #Removed 11 samples
+k3 <- prune_samples(sample_sums(alldat[[3]]) > 100000, alldat[[3]])
+alldat[[3]] <- k3 #Removed 1 sample
+
+k <- prune_samples(sample_sums(alldat.root[[4]]) > 100000, alldat.root[[4]])
+alldat.root[[4]] <- k #Removed 7 samples
+
+min(rowSums(otu_table(alldat.N[[4]]))) #11,516 for nosoil object -> filtering out samples with less than 100,000 seq
+k4 <- prune_samples(sample_sums(alldat.N[[4]]) > 100000, alldat.N[[4]])
+alldat.N[[4]] <- k4 #Removed 7 samples
+
+
+rarfun  <- function(x) {
+  rfy <- min(rowSums(otu_table(x)))
+  sar.rats.rarefy <- rarefy_even_depth(x, sample.size=rfy, replace=FALSE, rngseed = 1)
+  return(sar.rats.rarefy)
+}
+
+rfy <- min(rowSums(otu_table(alldat.root[[4]]))) 
+alldat.root.rfy <- lapply(alldat.root, rarfun)
+
+#Same process for nosoil objects
+rarfun  <- function(x) {
+  rfy <- min(rowSums(otu_table(x)))
+  sar.rats.rarefy <- rarefy_even_depth(x, sample.size=rfy, replace=FALSE, rngseed = 1)
+  return(sar.rats.rarefy)
+}
+
+rfy <- min(rowSums(otu_table(alldat.N[[4]])))
+alldat.N.rfy <- lapply(alldat.N, rarfun)
+
+
+## having a look at sample data summary
+library(ggordiplots)
+k <- as.data.frame(sample_data(alldat.root[[2]]))
+head(k)
+table(k$elevation_adj, k$site_elevation)
+table(k$site,k$elevation_adj)
+
+## Fixing tax tables by filling out N fields
+alldat <- lapply(alldat, function(x) tax_fix(x,
+                                             min_length = 3,
+                                             unknowns = c(""),
+                                             sep = " ", anon_unique = TRUE,
+                                             suffix_rank = "classified"))
+
+
+alldat.N <- lapply(alldat.N, function(x) tax_fix(x,
+                                                 min_length = 3,
+                                                 unknowns = c(""),
+                                                 sep = " ", anon_unique = TRUE,
+                                                 suffix_rank = "classified"))
+alldat.root <- lapply(alldat.root, function(x) tax_fix(x,
+                                                       min_length = 3,
+                                                       unknowns = c(""),
+                                                       sep = " ", anon_unique = TRUE,
+                                                       suffix_rank = "classified"))
+
+
+
+library(fantaxtic)
+
+## labelling unique OTUslapply
+alldat <- lapply(alldat, function(x) label_duplicate_taxa(x, "Species", duplicate_label = "<tax> <id>"))
+head(tax_table(alldat[[2]]), n = 20)
+
+alldat.N <- lapply(alldat.N, function(x) label_duplicate_taxa(x, "Species", duplicate_label = "<tax> <id>"))
+head(tax_table(alldat.N[[2]]), n = 20)
+
+alldat.root <- lapply(alldat.root, function(x) label_duplicate_taxa(x, "Species", duplicate_label = "<tax> <id>"))
+head(tax_table(alldat.root[[2]]), n = 20)
+
+
+save.image(file = "eco_analysis.RData")
+
+```
+
+Data summary
+
+```{r}
+
+
+load("eco_analysis.RData")
+
+## having a look at sample data summary
+k <- as.data.frame(sample_data(alldat.N[[2]]))
+head(k)
+table(k$site, k$habitat, k$elevation_adj)
+table(k$site,k$elevation_adj)
+
+
+balanced_ps <- subset_samples(alldat.N[[2]], site %in% c("DOM", "NV"))
+balanced_ps <- subset_samples(balanced_ps, !(site_elevation == "NV_4"))
+balanced_ps <- prune_taxa(taxa_sums(balanced_ps) > 0, balanced_ps)  # Prune taxa with zero abundance
+
+```
+
+PCA on Aitchison distances (ecluidean distances from robust clr transformed data)
+
+```{r}
+
+```
