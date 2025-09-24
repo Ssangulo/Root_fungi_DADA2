@@ -1,0 +1,330 @@
+
+
+#This scripts follows the original code from example script for the construction of phyloseq objects without soil samples ("field controls")
+
+load("merged_ITS.RData")
+## need to subtract equivalent OTU sequences from NTCs, extraction blanks, field blanks etc.
+
+## subtracting largest NTC value from each OTU from all samples for that OTU
+ntc.change <- function(x){
+  mind <- apply(x[grep("PCRB", rownames(x)), ], 2, function(y) max(y, na.rm = TRUE))
+  x1 <- sweep(x, 2, mind)
+  x1 <- pmax(x1,0)
+  return(x1)
+}
+
+##### removing NTC counts from each OTU using the highest sequencing count per OTU in the NTCs
+
+nopool.lulu.ntc <-  ntc.change(nopool.lulu)
+pool.lulu.ntc <-  ntc.change(pool.lulu)
+pspool.lulu.ntc <-  ntc.change(pspool.lulu)
+
+### Controlling for extraction blanks
+
+## need experimental data
+exdata <- read.csv("ITS_metadata_with_habitat.csv")
+str(exdata)
+
+## function to convert data to list of matrices split by blank extract batch
+ntc.to.blankcontrol <-  function (x){
+  sample.info.nopool <- dplyr::bind_rows(nopool.lulu.index, .id = "column_label")
+  row.names(sample.info.nopool) = sample.info.nopool$full
+  z = merge(nopool.lulu.ntc, sample.info.nopool, by =  'row.names', all.x=TRUE)
+  z = merge(z, exdata, by.x="sample", by.y="sample", all.x=TRUE)
+  rownames(z) <- z$Row.names 
+  z = split(z, z$extract_blank)
+  dropnames <- colnames(z[[2]][, c(which(nchar(colnames(z[[2]]))< 30))])
+  z <- lapply(z, function(x) x[!(names(x) %in% dropnames)])
+  z = lapply(z, as.matrix)
+  return(z)
+}
+
+nopool.lulu.ntc.blankC <- ntc.to.blankcontrol(nopool.lulu.ntc)
+pool.lulu.ntc.blankC <- ntc.to.blankcontrol(pool.lulu.ntc)
+pspool.lulu.ntc.blankC <- ntc.to.blankcontrol(pspool.lulu.ntc)
+
+## getting rid of experimental controls with no blank samples
+nopool.lulu.ntc.blankC1 <- nopool.lulu.ntc.blankC[-1]
+pool.lulu.ntc.blankC1 <- pool.lulu.ntc.blankC[-1]
+pspool.lulu.ntc.blankC1 <- pspool.lulu.ntc.blankC[-1]
+
+unique(exdata$extract_blank) # copy in blank extract names
+blank.change <- function(x){
+  mind <- apply(x[grep("E_1_7|E_2_12|E_3_12|E_4_12|E_5_12|E_6_12|E_7_12|E_8_12|E_9_12|E_10_12|E_11_12|E_12_6|E_S1_8|E_S2_6|E_BC|E_W4", rownames(x)), ], 2, function(y) max(y, na.rm = TRUE))
+  x1 <- sweep(x, 2, mind)
+  x1 <- pmax(x1,0)
+  return(x1)
+}
+
+nopool.lulu.ntc.blankC2 <- lapply(nopool.lulu.ntc.blankC1, blank.change)
+pool.lulu.ntc.blankC2 <- lapply(pool.lulu.ntc.blankC1, blank.change)
+pspool.lulu.ntc.blankC2 <- lapply(pspool.lulu.ntc.blankC1, blank.change)
+
+## inf values because trying to subtract 0 from 0 .. converting back 
+
+nopool.lulu.ntc.blankC2 <- lapply(nopool.lulu.ntc.blankC2,function(x) replace(x, !is.finite(x), 0))
+pool.lulu.ntc.blankC2 <- lapply(pool.lulu.ntc.blankC2, function(x) replace(x, !is.finite(x), 0))
+pspool.lulu.ntc.blankC2 <- lapply(pspool.lulu.ntc.blankC2, function(x) replace(x, !is.finite(x), 0))
+
+
+##### The same can occur for field blanks - merging dataset again
+nopool.lulu.ntc.blankC2 <- lapply(nopool.lulu.ntc.blankC2,function(x) as.data.frame(x))
+pool.lulu.ntc.blankC2 <- lapply(pool.lulu.ntc.blankC2,function(x) as.data.frame(x))
+pspool.lulu.ntc.blankC2 <- lapply(pspool.lulu.ntc.blankC2,function(x) as.data.frame(x))
+
+nopool.lulu.ntc.blank.fieldb <- dplyr::bind_rows(nopool.lulu.ntc.blankC2, .id = "column_label")
+pool.lulu.ntc.blank.fieldb <- dplyr::bind_rows(pool.lulu.ntc.blankC2, .id = "column_label")
+pspool.lulu.ntc.blank.fieldb <- dplyr::bind_rows(pspool.lulu.ntc.blankC2, .id = "column_label")
+
+
+## function to group samples into lists via field blanks
+
+exblank.to.fieldblankcontrol <-  function (x){
+  z <- x
+  sample.info.nopool <- dplyr::bind_rows(nopool.lulu.index, .id = "column_label")
+  row.names(sample.info.nopool) = sample.info.nopool$full
+  z = merge(nopool.lulu.ntc, sample.info.nopool , by =  'row.names', all.x=TRUE)
+  z = merge(z, exdata, by.x="sample", by.y="sample", all.x=TRUE)
+  rownames(z) <- z$Row.names 
+  z = split(z, z$Fieldcontrol)
+  dropnames <- colnames(z[[2]][, c(which(nchar(colnames(z[[2]]))< 30))])
+  z <- lapply(z, function(x) x[!(names(x) %in% dropnames)])
+  z = lapply(z, as.matrix)
+  return(z)
+}
+
+
+nopool.lulu.ntc.blank.fieldblist <- exblank.to.fieldblankcontrol(nopool.lulu.ntc.blank.fieldb)
+pool.lulu.ntc.blank.fieldblist <- exblank.to.fieldblankcontrol(pool.lulu.ntc.blank.fieldb)
+pspool.lulu.ntc.blank.fieldblist <- exblank.to.fieldblankcontrol(pspool.lulu.ntc.blank.fieldb)
+
+
+## getting rid non-samples experimental controls with no blank samples
+nopool.lulu.ntc.blank.fieldblist <- nopool.lulu.ntc.blank.fieldblist[-1]
+pool.lulu.ntc.blank.fieldblist <- pool.lulu.ntc.blank.fieldblist[-1]
+pspool.lulu.ntc.blank.fieldblist <- pspool.lulu.ntc.blank.fieldblist[-1]
+
+unique(exdata$Fieldcontrol) # copy in blank extract names
+fb.blank.change <- function(x){
+  mind <- apply(x[grep("S_S1_1|S_S1_2|S_S1_3|S_S1_4|S_S1_5|S_S1_6|S_S1_7|S_S2_1|S_S2_2|S_S2_3|S_S2_4|S_S2_5", rownames(x)), ], 2, function(y) max(y, na.rm = TRUE))
+  x1 <- sweep(x, 2, mind)
+  x1 <- pmax(x1,0)
+  return(x1)
+}
+
+nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist, fb.blank.change)
+pool.lulu.ntc.blank.fieldblist1 <- lapply(pool.lulu.ntc.blank.fieldblist, fb.blank.change)
+pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist, fb.blank.change)
+
+nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist1,function(x) replace(x, !is.finite(x), 0))
+pool.lulu.ntc.blank.fieldblist1 <- lapply(pool.lulu.ntc.blank.fieldblist1, function(x) replace(x, !is.finite(x), 0))
+pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist1, function(x) replace(x, !is.finite(x), 0))
+
+## Merging data back to just biological samples
+##### The same can occur for field blanks - merging dataset again
+nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist1,function(x) as.data.frame(x))
+pool.lulu.ntc.blank.fieldblist1 <- lapply(pool.lulu.ntc.blank.fieldblist1,function(x) as.data.frame(x))
+pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist1,function(x) as.data.frame(x))
+
+
+nopool.lulu.ntc.blank.fielddone<- dplyr::bind_rows(nopool.lulu.ntc.blank.fieldblist1, .id = "column_label")
+
+pool.lulu.ntc.blank.fielddone<- dplyr::bind_rows(pool.lulu.ntc.blank.fieldblist1, .id = "column_label")
+
+pspool.lulu.ntc.blank.fielddone<- dplyr::bind_rows(pspool.lulu.ntc.blank.fieldblist1, .id = "column_label")
+
+#removing column id labels
+nopool.lulu.ntc.blank.fielddone<- nopool.lulu.ntc.blank.fielddone[,-1]
+pool.lulu.ntc.blank.fielddone<- pool.lulu.ntc.blank.fielddone[,-1]
+pspool.lulu.ntc.blank.fielddone<-  pspool.lulu.ntc.blank.fielddone[,-1]
+## need to remove non-biological samples from dataframes and split into lists of individual samples for replicate control and combination etc
+
+unique(rownames(nopool.lulu.ntc.blank.fielddone))
+
+## only field blanks (with zero sequences in) remain so removing these 
+
+### All samples controlled (by sequence count) for blank extract and field blanks
+## function to remove control samples (blanks, ntc, positive controls and tagcatches) and making lists of dataframes by samples for later
+
+
+#Function to remove field controls (soil samples) from phyloseq object
+
+controlledblanks.to.samplelist <- function(x) {
+  minusNTCBLANK.sample <- x
+  
+  # Using pattern matching (grep) instead of exact matching
+  samples_to_remove <- c("S_S1_1", "S_S1_2", "S_S1_3", "S_S1_4", "S_S1_5", 
+                         "S_S1_6", "S_S1_7", "S_S2_1", "S_S2_2", "S_S2_3", 
+                         "S_S2_4", "S_S2_5")
+  
+  # Use grep to match patterns correctly and remove rows
+  rows_to_remove <- grep(paste(samples_to_remove, collapse = "|"), rownames(minusNTCBLANK.sample))
+  minusNTCBLANK.sample <- minusNTCBLANK.sample[-rows_to_remove, , drop = FALSE]
+  
+  # Hardcoded metadata for nopool
+  sample.info.nopool <- dplyr::bind_rows(nopool.lulu.index, .id = "column_label")
+  row.names(sample.info.nopool) <- sample.info.nopool$full
+
+  # Merge and process
+  minusNTCBLANK.sample <- merge(minusNTCBLANK.sample, sample.info.pspool, by = 'row.names', all.x = TRUE)
+  rownames(minusNTCBLANK.sample) <- minusNTCBLANK.sample$Row.names
+  minusNTCBLANK.sample <- split(minusNTCBLANK.sample, minusNTCBLANK.sample$sample)
+  
+  # Drop columns with names shorter than 30 characters
+  dropnames <- colnames(minusNTCBLANK.sample[[2]][, c(which(nchar(colnames(minusNTCBLANK.sample[[2]])) < 30))])
+  minusNTCBLANK.sample <- lapply(minusNTCBLANK.sample, function(x) x[!(names(x) %in% dropnames)])
+  
+  return(minusNTCBLANK.sample)
+}
+
+nopool.lulu.controlled_1 <- controlledblanks.to.samplelist(nopool.lulu.ntc.blank.fielddone)
+pool.lulu.controlled_1 <- controlledblanks.to.samplelist(pool.lulu.ntc.blank.fielddone)
+pspool.lulu.controlled_1 <-  controlledblanks.to.samplelist(pspool.lulu.ntc.blank.fielddone)
+
+str(nopool.lulu.controlled_1)
+head(rownames(nopool.lulu.controlled_1))
+
+View(sample.info.nopool)
+
+#OTU dropped if only in single PCR replicate (i.e. OTU in at least 2/4 replicated)
+rep.groups2 <- function(x){
+  r2 <- apply(x, 2, function(c) replace(c, sum(c!=0)<2, 0))
+  return(r2)
+}
+
+rg2.nopool.lulu.controlled <- lapply(nopool.lulu.controlled_1 , rep.groups2)
+rg2.pool.lulu.controlled <- lapply(pool.lulu.controlled_1 , rep.groups2)
+rg2.pspool.lulu.controlled <- lapply(pspool.lulu.controlled_1 , rep.groups2)
+
+
+#OTU dropped if only in two or fewer PCR replicates (i.e. OTU in at least 3/4 replicated)
+rep.groups3 <- function(x){
+  r3 <- apply(x, 2, function(c) replace(c, sum(c!=0)<3, 0))
+  return(r3)
+}
+
+rg3.nopool.lulu.controlled <- lapply(nopool.lulu.controlled_1 , rep.groups3)
+rg3.pool.lulu.controlled <- lapply(pool.lulu.controlled_1 , rep.groups3)
+rg3.pspool.lulu.controlled <- lapply(pspool.lulu.controlled_1 , rep.groups3)
+
+#Only OTUs in all four PCR replicates 
+
+rep.groups4 <- function(x){
+  r4 <- apply(x, 2, function(c) replace(c, sum(c!=0)<4, 0))
+  return(r4)
+}
+
+
+rg4.nopool.lulu.controlled <- lapply(nopool.lulu.controlled_1 , rep.groups4)
+rg4.pool.lulu.controlled <- lapply(pool.lulu.controlled_1 , rep.groups4)
+rg4.pspool.lulu.controlled <- lapply(pspool.lulu.controlled_1 , rep.groups4)
+
+## now we can extract the sequence data and make a phylopseq object - taxonomy can be added later
+
+### extracting sequence data
+library(dada2)
+nopool.lulu.controlled_1 <- lapply(nopool.lulu.controlled_1, as.matrix)
+pool.lulu.controlled_1 <- lapply(pool.lulu.controlled_1, as.matrix)
+pspool.lulu.controlled_1 <- lapply(pspool.lulu.controlled_1, as.matrix)
+
+uniquesToFasta(as.matrix(nopool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates2/nopool_nosoil.fasta", ids=paste0("OTU", seq(length(getSequences(nopool.lulu.controlled_1[[1]])))))
+uniquesToFasta(as.matrix(pool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates2/pool_nosoil.fasta", ids=paste0("OTU", seq(length(getSequences(pool.lulu.controlled_1[[1]])))))
+uniquesToFasta(as.matrix(pspool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates2/pspool_nosoil.fasta", ids=paste0("OTU", seq(length(getSequences(pspool.lulu.controlled_1[[1]])))))
+
+sequence_lengths3 <- nchar(getSequences("/data/lastexpansion/danieang/data/trimmed/mergedPlates/nopool_nosoil.fasta"))
+summary(sequence_lengths3)
+
+
+library(phyloseq)
+library(seqinr)
+#reading back in sequence files
+nopoolseqs <- read.fasta("nopool_nosoil.fasta")
+row.names(nopoolseqs) <- nopoolseqs$id
+poolseqs  <- read.fasta("pool_nosoil.fasta")
+row.names(poolseqs) <- poolseqs$seq.name
+pspoolseqs  <- read.fasta("pspool_nosoil.fasta")
+row.names(pspoolseqs) <- pspoolseqs$seq.name
+
+## Function to make phylosequ object from OTU, tax data and sample data
+
+to.one.matrix <- function(x){
+  lah <- do.call(rbind.data.frame, x)
+  rownames(lah) <- names(x)
+  colnames(lah) <- names(x[[1]])
+  lah <- as.matrix(lah)
+  return(lah)
+}
+
+row.names(exdata) <- exdata$sample
+
+make.phylo <- function (x, z, k){ # x = OTU data to this point, z = sample data, k = sequence data
+  ## Summing all the replicates to get a single row for each sample
+  single <- lapply(x, function(w) colSums(w) )
+  ### getting a single matrix from list of samples (with single row)
+  test <- to.one.matrix(single)
+  ## Giving the columns the OTU name instead of the sequence 
+  colnames(test) <-  names(k)
+  ### Making phyloseq initial object
+  wanted <- phyloseq(otu_table(test, taxa_are_rows = FALSE), sample_data(z))
+  ## getting DNA data
+  dna <- Biostrings::DNAStringSet(colnames(x[[1]]))
+  ## naming sequences as OTUs
+  names(dna) <- names(k)
+  ##Finishinf phyloseq object
+  wanted <- merge_phyloseq(wanted, dna)
+  return(wanted)
+}
+
+## making phyoseq data from raw data
+nopoolps_nosoil <- make.phylo(nopool.lulu.controlled_1 , exdata, nopoolseqs)
+poolps_nosoil <- make.phylo(pool.lulu.controlled_1 , exdata, poolseqs)
+pspoolps_nosoil <- make.phylo(pspool.lulu.controlled_1 , exdata, pspoolseqs)
+
+
+## making phyloseq data from rg2 (OTU in at least 2 replicates data) no/soil
+rg2.nopoolps_nosoil <- make.phylo(rg2.nopool.lulu.controlled , exdata, nopoolseqs)
+rg2.poolps_nosoil <- make.phylo(rg2.pool.lulu.controlled , exdata, poolseqs)
+rg2.pspoolps_nosoil <- make.phylo(rg2.pspool.lulu.controlled , exdata, pspoolseqs)
+
+rg3.nopoolps_nosoil <- make.phylo(rg3.nopool.lulu.controlled , exdata, nopoolseqs)
+rg3.poolps_nosoil <- make.phylo(rg3.pool.lulu.controlled , exdata, poolseqs)
+rg3.pspoolps_nosoil <- make.phylo(rg3.pspool.lulu.controlled , exdata, pspoolseqs)
+
+rg4.nopoolps_nosoil <- make.phylo(rg4.nopool.lulu.controlled , exdata, nopoolseqs)
+rg4.poolps_nosoil <- make.phylo(rg4.pool.lulu.controlled , exdata, poolseqs)
+rg4.pspoolps_nosoil <- make.phylo(rg4.pspool.lulu.controlled , exdata, pspoolseqs)
+
+
+saveRDS(rg2.nopoolps_nosoil, "rg2.nopoolps_nosoil.rds")
+saveRDS(rg2.poolps_nosoil, "rg2.poolps_nosoil.rds")
+saveRDS(rg2.pspoolps_nosoil, "rg2.pspoolps_nosoil.rds")
+
+saveRDS(rg3.nopoolps_nosoil, "rg3.nopoolps_nosoil.rds")
+saveRDS(rg3.poolps_nosoil, "rg3.poolps_nosoil.rds")
+saveRDS(rg3.pspoolps_nosoil, "rg3.pspoolps_nosoil.rds")
+
+saveRDS(rg4.nopoolps_nosoil, "rg4.nopoolps_nosoil.rds")
+saveRDS(rg4.poolps_nosoil, "rg4.poolps_nosoil.rds")
+saveRDS(rg4.pspoolps_nosoil, "rg4.pspoolps_nosoil.rds")
+
+
+saveRDS(nopoolps_nosoil, "nopoolps_nosoil.rds")
+saveRDS(poolps_nosoil, "poolps_nosoil.rds")
+saveRDS(pspoolps_nosoil, "pspoolps_nosoil.rds")
+
+str(exdata)
+### All data is in phyloseq objects now
+
+plot_richness(nopoolps, x="biome", color="elevation_adj")
+
+plot_richness(poolps, x="elevation_adj", color="site")
+
+library(microViz)
+library(ggplot2)
+
+## look into microviz for ways to examine your data..
+
+save.image("merged_ITS2.RData")
+
+
+
