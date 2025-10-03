@@ -314,7 +314,7 @@ individual_ps
 
 #Making PERMANOVA and beta dispersion tests
 
-ps <- individual_ps
+
 
 dists <- vegdist(otu_table(ps), binary=FALSE, method="robust.aitchison") 
 sampledf <- data.frame(sample_data(ps))
@@ -331,6 +331,8 @@ permutest(beta)
 permutest(beta1)
 
 #Running dbRDA with robust aitchison
+
+ps <- individual_ps
 
 d_ait <- vegdist(otu_table(ps), binary=FALSE, method="robust.aitchison")
 
@@ -357,7 +359,7 @@ cap2_pct <- round(100 * eig_con[2] / sum(eig_con), 1)
 xlab_txt <- paste0("dbRDA1 (", cap1_pct, "%)")
 ylab_txt <- paste0("dbRDA2 (", cap2_pct, "%)")
 
-png("/data/lastexpansion/danieang/Plots2/dbRDA_plot1.png",
+png("/data/lastexpansion/danieang/Plots2/dbRDA_collapsed.png",
     width = 7.5, height = 6.5, units = "in", res = 600)
 
 par(mfrow = c(1,1), mar = c(4,4,1,1), xpd = NA, cex = 1)
@@ -776,6 +778,7 @@ print(p_TD)
 ggsave("/data/lastexpansion/danieang/Plots2/iNEXT_TD_by_habitat.png",
        p_TD, width = 10, height = 6, dpi = 800, bg = "white")
 
+###############
 
 
 #Microviz tax barplot

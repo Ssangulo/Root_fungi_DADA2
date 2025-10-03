@@ -701,7 +701,7 @@ unique(exdata$Fieldcontrol) # copy in blank extract names
 
 #Applying this function to remove OTUs (OTU count) present in soil controls by sampling location. This function is only applied for the root-only, dataset. 
 
-unique(exdata$Fieldcontrol) # copy in blank extract names
+unique(exdata$Fieldcontrol) # copy in control names
 
 fb.blank.change <- function(x){
   mind <- apply(x[grep("S_S1_1|S_S1_2|S_S1_3|S_S1_4|S_S1_5|S_S1_6|S_S1_7|S_S2_1|S_S2_2|S_S2_3|S_S2_4|S_S2_5", rownames(x)), ], 2, function(y) max(y, na.rm = TRUE))

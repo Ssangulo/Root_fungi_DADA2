@@ -1,26 +1,26 @@
 {
-    "id": "A56EFB5F",
-    "path": "~/GitHub/Daniel.BIGTREE.iNext.Basic.Dada2/Scripts_paper/Eco_analysis_paper.R",
-    "project_path": null,
+    "id": "BFDD6394",
+    "path": "D:/Daniel/documentos/GitHub/Root_fungi_DADA2/Scripts/full_pipeline_DADA2.R",
+    "project_path": "Scripts/full_pipeline_DADA2.R",
     "type": "r_source",
-    "hash": "1970638724",
+    "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1758708340973.0,
+    "created": 1758790195532.0,
     "source_on_save": false,
     "relative_order": 6,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "776,61",
-        "scrollLine": "773"
+        "cursorPosition": "708,18",
+        "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1758710243,
+    "lastKnownWriteTime": 1758823506,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1758710244010,
+    "last_content_update": 1758823506952,
     "read_only": false,
     "read_only_alternatives": []
 }

@@ -1,0 +1,584 @@
+
+library(phyloseq)
+library(dplyr)
+
+
+
+
+#code to summarize OTU counts from same individual...
+
+#MOOVING TO BETA REGRESION
+# Convert the OTU table to a matrix and transpose so that OTUs are rows and samples are columns
+
+ps <- individual_ps
+
+# 1) OTU matrix with taxa as rows
+otu <- as(otu_table(ps), "matrix")
+if (!taxa_are_rows(ps)) otu <- t(otu)  # rows = taxa, cols = samples
+
+# 2) Robust Helotiales filter from taxonomy
+tax <- as.data.frame(tax_table(ps), stringsAsFactors = FALSE)
+helotiales_otus <- rownames(tax)[grepl("helotiales", tolower(tax$Order %||% ""))]
+
+# 3) Counts per sample
+helot_counts <- colSums(otu[helotiales_otus, , drop = FALSE])
+total_counts <- colSums(otu)
+
+# 4) Build dataframe aligned to column order of `otu`
+sdat <- as.data.frame(sample_data(ps))
+samples <- colnames(otu)
+
+df <- data.frame(
+  SampleID = samples,
+  HelotialesCount = helot_counts[samples],
+  TotalCount = total_counts[samples],
+  Site = sdat[samples, "site", drop = TRUE],
+  Elevation = sdat[samples, "elevation", drop = TRUE],
+  stringsAsFactors = FALSE
+)
+
+# 5) Proportion + Smithson–Verkuilen adjustment to keep in (0,1)
+df$Proportion <- with(df, HelotialesCount / pmax(TotalCount, 1))
+n <- nrow(df)
+df$Proportion <- (df$Proportion * (n - 1) + 0.5) / n
+
+# 6) Beta regression
+library(betareg)
+model_helot_root <- betareg(Proportion ~ elevation + site, data = df)
+
+summary(model_helot_beta)
+summary(model_helot_beta_noMA)
+summary(model_helot_root)
+
+summary(model_sebac_beta)
+summary(model_sebac_beta_noMA)
+summary(model_sebac_root)
+
+# ---- Run on your two models and export ----
+helot_out <- tidy_betareg(model_helot_root,  model_name = "Helotiales")
+sebac_out <- tidy_betareg(model_sebac_root,  model_name = "Sebacinales")
+
+
+
+### Running GLLVM 
+library(gllvm)
+
+comm <- as(otu_table(ps), "matrix")
+if (taxa_are_rows(ps)) comm <- t(comm)   # samples x taxa
+
+# Metadata
+md <- as(sample_data(ps), "data.frame")
+
+# total reads per sample
+libsize <- rowSums(comm)
+
+# store in metadata
+md$libsize <- libsize
+md$log_libsize <- log(libsize)
+
+# Are all samples non-empty?
+range(libsize)
+
+# Are sample names aligned?
+all(rownames(comm) == rownames(md))
+
+# Quick peek
+head(libsize)
+table(md$habitat)
+table(md$site)
+
+# keep taxa with >= 50 reads across all samples
+keep <- colSums(comm) >= 50
+comm_filt <- comm[, keep]
+
+dim(comm)       # before
+dim(comm_filt)  # after
+
+# Make sure habitat/site are factors and set baseline
+md$habitat <- relevel(factor(md$habitat), ref = "forest")
+md$site    <- droplevels(factor(md$site))
+
+X <- data.frame(habitat = md$habitat, site = md$site)
+
+# sanity
+stopifnot(nrow(X) == nrow(comm_filt))
+colnames(X)  # should include: "habitatparamo", "habitatsubparamo", and site dummies
+
+fit_gllvm <- gllvm(
+  y       = as.matrix(comm_filt),   # samples x taxa
+  X       = X,                      # data.frame of covariates
+  family  = "poisson",              # try "negative.binomial" if overdispersed
+  offset  = md$log_libsize,         # log(library size)
+  num.lv  = 2,                      # latent variables (start with 2)
+  sd.errors = TRUE                  # SEs for coefficient tests
+)
+
+
+summary(fit_gllvm)
+
+
+## --- Sample metadata checks ---
+# Number of samples per habitat and site
+table(md$habitat)
+table(md$site)
+
+# Cross-tab: how habitats are distributed across sites
+table(md$site, md$habitat)
+
+# Total reads per sample: range and summary
+summary(md$libsize)
+
+## --- Taxa (OTU/ASV) checks ---
+# Total number of taxa before and after filtering
+ncol(comm)        # all taxa
+ncol(comm_filt)   # taxa with >= 50 reads
+
+# Total reads per taxon
+tax_reads <- colSums(comm_filt)
+summary(tax_reads)
+
+# Number of taxa by abundance classes
+table(cut(tax_reads,
+          breaks = c(50, 100, 500, 1000, 5000, 10000, Inf),
+          labels = c("50-100","100-500","500-1k","1k-5k","5k-10k",">10k")))
+
+# How sparse is the matrix?
+mean(comm_filt == 0)   # proportion of zeros
+
+## --- Optional: collapse by genus (faster models + interpretability) ---
+# If you still have your phyloseq object `ps`:
+library(phyloseq)
+ps_genus <- tax_glom(ps, taxrank = "Genus")
+comm_genus <- as(otu_table(ps_genus), "matrix")
+if(taxa_are_rows(ps_genus)) comm_genus <- t(comm_genus)
+dim(comm_genus)   # samples x genera
+
+
+#There is clear overdispersion and unbalanced design - first making a clean data prep from scratch
+
+# ---- user settings ----
+min_total_reads <- 50
+presence_threshold <- 30
+min_prevalence_samples <- 0
+habitat_ref <- "forest"
+out_prefix <- "gllvm_results"
+
+# ---- extract from phyloseq ----
+stopifnot(exists("ps"), inherits(ps, "phyloseq"))
+
+Y <- as(otu_table(ps), "matrix")
+if (taxa_are_rows(ps)) Y <- t(Y)
+
+md <- as(sample_data(ps), "data.frame")
+
+stopifnot(nrow(Y) == nrow(md))
+stopifnot(all(rownames(Y) == rownames(md)))
+
+if (!all(c("habitat","site") %in% colnames(md))) {
+  stop("metadata must contain columns 'habitat' and 'site'")
+}
+md$habitat <- droplevels(factor(md$habitat))
+md$site    <- droplevels(factor(md$site))
+if (!(habitat_ref %in% levels(md$habitat))) {
+  stop(sprintf("habitat_ref='%s' not found in md$habitat levels: %s",
+               habitat_ref, paste(levels(md$habitat), collapse=", ")))
+}
+md$habitat <- relevel(md$habitat, ref = habitat_ref)
+
+md$libsize     <- rowSums(Y)
+md$log_libsize <- log(md$libsize)
+
+message("Samples per habitat:"); print(table(md$habitat))
+message("Samples per site:");    print(table(md$site))
+message("Library size summary:"); print(summary(md$libsize))
+
+# ---- filter ultra-rare taxa ----
+totals <- colSums(Y)
+prev   <- colSums(Y >= presence_threshold)
+
+keep1 <- totals >= min_total_reads
+keep2 <- prev   >= min_prevalence_samples
+keep  <- keep1 & keep2
+
+Yf <- Y[, keep, drop = FALSE]
+
+message(sprintf("Taxa before: %d | after filtering: %d", ncol(Y), ncol(Yf)))
+message(sprintf("Matrix sparsity after filtering: %.2f%% zeros", mean(Yf == 0) * 100))
+if (ncol(Yf) == 0) stop("All taxa were filtered out. Loosen thresholds.")
+
+# ---- design ----
+Xhab <- data.frame(habitat = md$habitat)
+studyDesign <- data.frame(site = md$site)
+
+
+## MODEL A: Abundance (counts)
+##    NB family + offset(log libsize) AND poisson
+## ---------------------------------------
+
+fit_nb <- gllvm(
+  y           = Yf,
+  X           = Xhab,
+  formula     = ~ habitat,
+  family      = "negative.binomial",
+  offset      = md$log_libsize,
+  row.eff     = ~(1|site),
+  studyDesign = studyDesign,
+  num.lv      = 0,          # start fast; try 1 later
+  sd.errors   = FALSE,
+  method      = "VA"
+)
+
+fit_poisson <- gllvm(
+  y           = Yf,
+  X           = Xhab,
+  formula     = ~ habitat,
+  family      = poisson(),
+  offset      = md$log_libsize,
+  row.eff     = ~(1|site),
+  studyDesign = studyDesign,
+  num.lv      = 0,
+  sd.errors   = FALSE,
+  method      = "VA"
+)
+
+# AIC and log-likelihood
+AIC(fit_poisson); logLik(fit_poisson)
+AIC(fit_nb); logLik(fit_nb)
+
+# Compare models directly
+anova(fit_poisson, fit_nb)
+
+#### NB outperforms poisson in AIC and loglikehood
+
+
+# Poisson
+coef_poisson <- as.data.frame(coef(fit_poisson)$Xcoef) %>%
+  tibble::rownames_to_column("taxon")
+
+# NB
+coef_nb <- as.data.frame(coef(fit_nb)$Xcoef) %>%
+  tibble::rownames_to_column("taxon")
+
+# See what predictors are available
+colnames(coef_nb)
+
+top_paramo <- coef_nb %>%
+  arrange(desc(habitatparamo)) %>%
+  slice_head(n = 30)
+
+top_subparamo <- coef_nb %>%
+  arrange(desc(habitatsubparamo)) %>%
+  slice_head(n = 30)
+
+
+#Assigning taxonomy
+tax <- as.data.frame(tax_table(ps)) %>% tibble::rownames_to_column("taxon")
+annotated_paramo <- left_join(top_paramo, tax, by="taxon")
+annotated_subparamo <- left_join(top_subparamo, tax, by="taxon")
+
+
+#Making list with order and genus columns 
+
+paramo_summary <- paramo_with_tax %>%
+  group_by(Order, Genus) %>%
+  summarise(
+    n_OTUs = n(),
+    mean_beta = mean(habitatparamo, na.rm = TRUE),
+    max_beta  = max(habitatparamo, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(mean_beta))
+
+subparamo_summary <- subparamo_with_tax %>%
+  group_by(Order, Genus) %>%
+  summarise(
+    n_OTUs = n(),
+    mean_beta = mean(habitatsubparamo, na.rm = TRUE),
+    max_beta  = max(habitatsubparamo, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(mean_beta))
+
+head(paramo_summary, 15)
+head(subparamo_summary, 15)
+
+
+
+###Collapsing at order level --- not usefull.... mean coefficients downweight specialist OTUs within each order...
+
+## 1) Join coefficients with taxonomy (no cleaning)
+annot_raw <- coef_nb %>%
+  left_join(tax, by = "taxon")
+
+## 2) Find the Order column name as-is (case-insensitive match of "order")
+tax_cols <- colnames(tax)
+col_order <- tax_cols[grep("(?i)^order$", tax_cols, perl = TRUE)]
+if (length(col_order) == 0) stop("Could not find an 'Order' column in tax_table(ps).")
+col_order <- col_order[1]  # take the first match
+
+## 3) Use raw Order (keep prefixes), replace NA/blank with "Unassigned"
+annot_raw <- annot_raw %>%
+  mutate(
+    Order_raw = .data[[col_order]],
+    Order_raw = ifelse(is.na(Order_raw) | Order_raw == "", "Unassigned", Order_raw)
+  )
+
+## 4) Collapse to Order level with simple robust summaries
+min_OTUs_per_order <- 5  # adjust as you like
+
+order_summary_raw <- annot_raw %>%
+  group_by(Order_raw) %>%
+  summarise(
+    n_OTUs           = n(),
+    median_paramo    = median(habitatparamo, na.rm = TRUE),
+    median_subparamo = median(habitatsubparamo, na.rm = TRUE),
+    mean_paramo      = mean(habitatparamo, na.rm = TRUE),
+    mean_subparamo   = mean(habitatsubparamo, na.rm = TRUE),
+    q75_paramo       = quantile(habitatparamo, 0.75, na.rm = TRUE),
+    q75_subparamo    = quantile(habitatsubparamo, 0.75, na.rm = TRUE),
+    q90_paramo       = quantile(habitatparamo, 0.90, na.rm = TRUE),
+    q90_subparamo    = quantile(habitatsubparamo, 0.90, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(delta_paramo_vs_sub = median_paramo - median_subparamo) %>%
+  filter(n_OTUs >= min_OTUs_per_order)
+
+## 5) Top orders (no cleaning, prefixes intact)
+top_orders_paramo_raw <- order_summary_raw %>%
+  arrange(desc(median_paramo)) %>%
+  select(Order_raw, n_OTUs, median_paramo, median_subparamo, delta_paramo_vs_sub, q90_paramo) %>%
+  slice_head(n = 20)
+
+top_orders_subparamo_raw <- order_summary_raw %>%
+  arrange(desc(median_subparamo)) %>%
+  select(Order_raw, n_OTUs, median_paramo, median_subparamo, delta_paramo_vs_sub, q90_subparamo) %>%
+  slice_head(n = 20)
+
+## 6) Peek + export
+print(top_orders_paramo_raw)
+print(top_orders_subparamo_raw)
+
+write_csv(order_summary_raw,         "gllvm_order_summary_raw.csv")
+write_csv(top_orders_paramo_raw,     "gllvm_top_orders_paramo_raw.csv")
+write_csv(top_orders_subparamo_raw,  "gllvm_top_orders_subparamo_raw.csv")
+
+
+
+#Paramo enriched order analysis with 
+order_summary_alt <- annot_raw %>%
+  group_by(Order_raw) %>%
+  summarise(
+    n_OTUs = n(),
+    median_paramo = median(habitatparamo, na.rm = TRUE),
+    q90_paramo    = quantile(habitatparamo, 0.90, na.rm = TRUE),
+    max_paramo    = max(habitatparamo, na.rm = TRUE),
+    weighted_mean_paramo = weighted.mean(habitatparamo, w = rowSums(Yf)[match(taxon, rownames(Yf))], na.rm = TRUE)
+  ) %>%
+  arrange(desc(q90_paramo))
+
+## Top 15 orders by q90 (captures the upper tail / specialists)
+order_summary_alt %>%
+  arrange(desc(q90_paramo)) %>%
+  slice_head(n = 15)
+
+## Top 15 orders by weighted mean (abundance-driven signal)
+order_summary_alt %>%
+  arrange(desc(weighted_mean_paramo)) %>%
+  slice_head(n = 15)
+
+## Top 15 orders by max (most extreme specialists)
+order_summary_alt %>%
+  arrange(desc(max_paramo)) %>%
+  slice_head(n = 15)
+
+
+
+
+# ---- MODEL B: presence/absence (Bernoulli) ----
+Y_pa <- (Yf >= presence_threshold) * 1L
+
+fit_pa <- gllvm(
+  y           = Y_pa,
+  X           = Xhab,
+  formula     = ~ habitat,
+  family      = "binomial",     # logit
+  row.eff     = ~(1|site),
+  studyDesign = studyDesign,
+  num.lv      = 0,
+  sd.errors   = FALSE,
+  method      = "VA"
+)
+
+B_pa <- coef(fit_pa)$Xcoef
+coef_names_pa <- colnames(B_pa)
+col_paramo_pa <- grep("^habitatparamo$", coef_names_pa, value = TRUE)
+if (length(col_paramo_pa) == 0) stop("No 'habitatparamo' column in PA model (check habitat levels).")
+
+res_pa <- as.data.frame(B_pa) |>
+  rownames_to_column("taxon") |>
+  mutate(across(-taxon, as.numeric)) |>
+  arrange(desc(.data[[col_paramo_pa]]))
+
+write_csv(res_pa, paste0(out_prefix, "_presence_absence_coefficients.csv"))
+message("Wrote: ", paste0(out_prefix, "_presence_absence_coefficients.csv"))
+
+# ---- join & flag strong páramo candidates ----
+joined <- res_nb |>
+  select(taxon, paramo_nb = all_of(col_paramo_nb)) |>
+  left_join(res_pa |>
+              select(taxon, paramo_pa = all_of(col_paramo_pa)),
+            by = "taxon") |>
+  mutate(enriched_paramo_both = (paramo_nb > 0) & (paramo_pa > 0)) |>
+  arrange(desc(paramo_nb))
+
+write_csv(joined, paste0(out_prefix, "_joined_nb_pa.csv"))
+message("Wrote: ", paste0(out_prefix, "_joined_nb_pa.csv"))
+
+# quick console peek
+message("\nTop 15 (NB paramo):")
+print(head(joined |> select(taxon, paramo_nb, paramo_pa, enriched_paramo_both), 15))
+
+message("\nCount enriched in BOTH NB & PA:")
+print(sum(joined$enriched_paramo_both, na.rm = TRUE))
+
+
+
+
+
+# Identify OTUs that belong to x
+leotiomycetes_otus <- rownames(tax_table(ps))[tax_table(ps)[, "Order"] == "o__helotiales"]
+
+# Subset the OTU table to only Leotiomycetes OTUs
+leotiomycetes_otu_table <- otu_table_matrix[leotiomycetes_otus, ]
+
+# Calculate Leotiomycetes counts per sample
+leotiomycetes_counts <- colSums(leotiomycetes_otu_table)
+
+# Calculate total sequencing depth per sample
+total_counts <- sample_sums(ps)
+
+# Combine data into a dataframe with Leotiomycetes counts, total counts, and elevation
+df <- data.frame(SampleID = sample_names(ps),
+                 LeotiomycetesCount = leotiomycetes_counts,
+                 TotalCount = total_counts,
+                 Site = sample_data(ps)$site,       
+                 Elevation = sample_data(ps)$elevation)
+
+# Calculate the proportion of Leotiomycetes reads for each sample
+df$Proportion <- df$LeotiomycetesCount / df$TotalCount
+
+# Adjust proportions to be within (0, 1) for beta regression
+df$Proportion <- (df$Proportion * (nrow(df) - 1) + 0.5) / nrow(df)
+
+# Fit a beta regression model with elevation and site as predictors
+library(betareg)
+model_leotiomycetes_beta <- betareg(Proportion ~ Elevation + Site, data = df)
+
+# Summary of the model
+summary(model_leotiomycetes_beta)
+
+summary(model_ascomycetes_beta)
+summary(model_basidiomycetes_beta)
+summary(model_leotiomycetes_beta)
+summary(model_agaricomycetes_beta)
+summary(model_eurotiomycetes_beta)
+summary(model_helotiales_beta)
+summary(model_sebacinales_beta)
+
+
+
+new_metadata <- read.csv("/data/lastexpansion/danieang/data/trimmed/mergedPlates/fix_metadata.csv", row.names = 1)
+
+sample_data(alldat.root[[2]]) <- sample_data(new_metadata)
+
+head(sample_data(alldat.root[[2]]))
+
+#Making  model by merging the two samples from each individual (sum of OTU counts)
+# Extract OTU table and sample data
+
+
+#Making PERMANOVA model by merging the two samples from each individual (sum of OTU counts)
+# Extract OTU table and sample data
+otu_table_data <- otu_table(alldat.root[[2]])
+sample_data_df <- data.frame(sample_data(alldat.root[[2]]))
+
+# Ensure Individual is a factor
+sample_data_df$Unique_ID <- as.factor(sample_data_df$Unique_ID)
+
+# Ensure OTU table is samples x taxa (transpose if necessary)
+dim(otu_table_data)
+
+# Convert OTU table to data frame and add SampleID column
+otu_table_df <- as.data.frame(otu_table_data)
+otu_table_df$SampleID <- rownames(otu_table_df)
+
+# Ensure the SampleID is in rownames in sample_data_df
+sample_data_df$SampleID <- rownames(sample_data_df)
+
+# Merge OTU table with sample data
+combined_df <- merge(
+  otu_table_df,
+  sample_data_df,
+  by.x = "SampleID",  # Use OTU table's SampleID
+  by.y = "SampleID",  # Ensure matching sample IDs in sample data
+  all.x = TRUE
+)
+
+# Inspect the merged data to verify it merged correctly
+head(combined_df)
+
+# Summarise OTU counts by Individual_site
+summed_df <- combined_df %>%
+  group_by(Unique_ID) %>%
+  summarise(across(starts_with("OTU"), ~ sum(.x, na.rm = TRUE)))
+
+# Keep the first SampleID and metadata columns that do NOT start with "OTU" (to avoid duplicates)
+first_sample_ids <- combined_df %>%
+  group_by(Unique_ID) %>%
+  summarise(across(!starts_with("OTU"), first))  # Retain only metadata columns, avoid OTU columns
+
+# Combine the first SampleID with the summed OTU counts
+final_df <- left_join(first_sample_ids, summed_df, by = "Unique_ID")
+
+# Inspect the final data
+head(final_df)
+
+
+# Extract the OTU table from final_df, only keep OTU columns (which start with "OTU")
+otu_summed <- final_df %>%
+  select(starts_with("OTU")) %>%
+  as.matrix()
+
+# Set row names to the sample IDs
+rownames(otu_summed) <- final_df$SampleID
+
+# Extract specific sample metadata columns you want to keep
+sample_metadata <- final_df %>%
+  select(SampleID, Unique_ID, site, elevation, site_elevation, habitat, treeline, Individual, elevation_adj) %>%
+  as.data.frame()
+
+# Set row names to the sample IDs
+rownames(sample_metadata) <- sample_metadata$SampleID
+sample_metadata <- sample_metadata %>% select(-SampleID)  # Remove SampleID column
+
+# Create phyloseq components: OTU table, sample data, taxonomy (if available)
+otu_ps <- otu_table(otu_summed, taxa_are_rows = FALSE)  # Summed OTU table
+sample_ps <- sample_data(sample_metadata)               # Sample metadata
+
+
+ps <- phyloseq(otu_ps, sample_ps) 
+
+ps
+
+tax_table_original <- tax_table(alldat.root[[2]])
+
+# Step 2: Make sure the OTU names are consistent between original and ps
+otu_in_ps <- taxa_names(ps)  # OTU names in the ps object
+otu_in_original <- taxa_names(tax_table_original)  # OTU names in the original taxonomy table
+
+# Step 3: Filter the original taxonomy table to only keep OTUs present in ps
+filtered_tax_table <- tax_table_original[otu_in_ps, ]
+
+# Step 4: Add the filtered taxonomy table to the ps object
+tax_table(ps) <- tax_table(filtered_tax_table)
+
