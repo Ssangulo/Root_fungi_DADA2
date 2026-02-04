@@ -59,6 +59,7 @@ pct_host_reads
 
 ps_fungi <- prune_taxa(!taxa_names(ps) %in% host_otus, ps)
 
+tree_ps <- prune_taxa(!taxa_names(tree) %in% host_otus, tree)
 
 ##RERUNNING KEY ANALYSES
 
