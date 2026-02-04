@@ -4,13 +4,6 @@ format: html
 editor: visual
 ---
 
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
-
 ## Overview
 
 This document compiles methodological details and reproducibility outputs supporting the manuscript.\
@@ -18,7 +11,7 @@ Computationally intensive steps (e.g., phylogenetic tree inference, GLLVM) were 
 
 Repository: (GitHub link)\
 Sequence data: (ENA accession)\
-Metadata: PlutoF... `S1_metadata.csv`
+Metadata: PlutoF... ... `Data_S1_metadata.csv`
 
 ## Study sites and sampling
 
