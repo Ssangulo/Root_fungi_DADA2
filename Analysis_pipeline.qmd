@@ -4,14 +4,23 @@ format: html
 editor: visual
 ---
 
-## Overview
+## Overview and reproducibility
 
-This document compiles methodological details and reproducibility outputs supporting the manuscript.\
-Computationally intensive steps (e.g., phylogenetic tree inference, GLLVM) were executed on a remote Ubuntu server and are loaded here from saved outputs when relevant.
+This document compiles methodological details, supplementary analyses, and reproducibility outputs supporting the main manuscript. Computationally intensive steps (e.g. phylogenetic tree inference, GLLVM fitting, iNEXT3D diversity estimation) were executed on a remote Ubuntu-based computing environment. Their outputs (figures, tables, and selected model objects) are integrated here as static results.
+
+All figures (PNG) and result tables (CSV) are stored within the project repository using relative paths. Rendering this document therefore requires cloning the repository and opening the Quarto file from the repository root.
+
+**Data availability.**
 
 Repository: (GitHub link)\
 Sequence data: (ENA accession)\
 Metadata: PlutoF... ... `Data_S1_metadata.csv`
+
+## Reproducibility overview
+
+This supplementary document integrates static figures and result tables generated from analyses run externally on a computing environment.
+
+All figures (PNG) and tables (CSV) are stored within the project repository using relative paths. Rendering this document therefore requires cloning the repository and opening the Quarto file from the repository root.
 
 ## Study sites and sampling
 
@@ -1107,7 +1116,7 @@ library(ggplot2)
 library(iNEXT.3D)  
 library(ape)        
 library(knitr)
-
+library(phangorn)
 
 
 
@@ -1171,5 +1180,123 @@ out_TD <- iNEXT3D(
   nboot     = 500
 )
 
-#NEED TO CONTINUE LEFT THIS COMPUTING 
+# relabel habitat names + ordering for plotting/tables
+out_TD <- relabel_inext(out_TD)
+
+# ---- Figure (TD curves) ----
+p_TD <- ggiNEXT3D(out_TD, type = 1, facet.var = "Order.q") +
+  labs(x = "Sampling units", y = "Taxonomic diversity") +
+  theme_minimal(base_size = 14) +
+  theme(legend.title = element_blank())
+
+ggsave(
+  filename = file.path(out_fig_dir, "Fig_4_iNEXT3D_TD.png"),
+  plot = p_TD, width = 10, height = 6, dpi = 800, bg = "white"
+)
+
+# ---- Table S10 (TD summary): use TDAsyEst as your “Observed/Asymptotic/CI/Coverage” table ----
+tab_s10 <- as.data.frame(out_TD$TDAsyEst)
+
+# Optional: make “Diversity_order” readable
+tab_s10 <- tab_s10 %>%
+  mutate(
+    Diversity_order = case_when(
+      Order.q == 0 ~ "Species richness",
+      Order.q == 1 ~ "Shannon diversity",
+      Order.q == 2 ~ "Simpson diversity",
+      TRUE ~ as.character(Order.q)
+    )
+  ) %>%
+  rename(
+    Habitat = Assemblage
+  )
+
+write.csv(
+  tab_s10,
+  file.path(out_tab_dir, "Table_S10_iNEXT3D_taxonomic_diversity.csv"),
+  row.names = FALSE
+)
+
+
+## ============================================================
+##  B) PHYLOGENETIC DIVERSITY (PD) ---- Table S11 + PD plot
+## ============================================================
+
+ps_pd <- tree_ps #phyloseq object with phy tree
+stopifnot(inherits(ps_pd, "phyloseq"))
+stopifnot(!is.null(phy_tree(ps_pd, errorIfNULL = FALSE)))
+
+sd2 <- as.data.frame(sample_data(ps_pd))
+stopifnot("habitat" %in% names(sd2))
+
+# Fix mislabel if present
+sd2$habitat <- as.character(sd2$habitat)
+sd2$habitat[sd2$habitat == "pasture"] <- "forest"
+sample_data(ps_pd)$habitat <- factor(sd2$habitat)
+
+# build taxa x samples incidence
+X <- as(otu_table(ps_pd), "matrix")
+if (!taxa_are_rows(ps_pd)) X <- t(X)  # taxa x samples
+
+sd2 <- as.data.frame(sample_data(ps_pd))
+
+inc_by_hab_pd <- lapply(split(rownames(sd2), sd2$habitat), function(samps){
+  M <- X[, colnames(X) %in% samps, drop = FALSE]
+  M[M > 0] <- 1
+  storage.mode(M) <- "numeric"
+  M
+})
+
+inc_by_hab_pd <- inc_by_hab_pd[names(inc_by_hab_pd) %in% names(labs_map)]
+inc_by_hab_pd <- inc_by_hab_pd[vapply(inc_by_hab_pd, function(M) nrow(M) > 0 && ncol(M) > 0, TRUE)]
+
+# Tree: prune to observed taxa in incidence matrices
+tr <- phy_tree(ps_pd)
+keep_tips <- intersect(tr$tip.label, unique(unlist(lapply(inc_by_hab_pd, rownames))))
+stopifnot(length(keep_tips) >= 2)
+
+tr2 <- ape::keep.tip(tr, keep_tips)
+tr2$node.label <- NULL
+if (!ape::is.rooted(tr2)) tr2 <- phangorn::midpoint(tr2)
+
+# Align matrices to final tip set (same taxa order)
+tipset <- tr2$tip.label
+inc_by_hab_pd <- lapply(inc_by_hab_pd, function(M) M[rownames(M) %in% tipset, , drop = FALSE])
+inc_by_hab_pd <- inc_by_hab_pd[vapply(inc_by_hab_pd, function(M) nrow(M) > 0 && ncol(M) > 0, TRUE)]
+
+out_PD <- iNEXT3D(
+  data      = inc_by_hab_pd,
+  diversity = "PD",
+  q         = c(0,1,2),
+  datatype  = "incidence_raw",
+  nboot     = 500,
+  PDtree    = tr2,
+  PDtype    = "meanPD"
+)
+
+# Plot
+p_PD <- ggiNEXT3D(out_PD, type = 1, facet.var = "Order.q") +
+  labs(x = "Sampling units", y = "Phylogenetic diversity (meanPD)") +
+  theme_minimal(base_size = 14) +
+  theme(legend.title = element_blank())
+
+ggsave(
+  filename = file.path(out_fig_dir, "Fig_S12_iNEXT3D_PD.png"),
+  plot = p_PD, width = 10, height = 6, dpi = 800, bg = "white"
+)
+
+# Table S11: PD summary lives in $PDAsyEst (same logic as TD)
+tab_s11 <- as.data.frame(out_PD$PDAsyEst) %>%
+  rename(Habitat = Assemblage)
+
+# Relabel habitats to capitalized versions (same mapping)
+tab_s11$Habitat <- as.character(tab_s11$Habitat)
+tab_s11$Habitat <- labs_map[tab_s11$Habitat]
+tab_s11$Habitat <- factor(tab_s11$Habitat, levels = lvl_order)
+
+write.csv(
+  tab_s11,
+  file.path(out_tab_dir, "Table_S11_iNEXT3D_phylogenetic_diversity.csv"),
+  row.names = FALSE
+)
 ```

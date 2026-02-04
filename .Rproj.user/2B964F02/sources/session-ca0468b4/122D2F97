@@ -3,9 +3,9 @@
     "path": "D:/Daniel/documentos/GitHub/Root_fungi_DADA2/host_otus.R",
     "project_path": "host_otus.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "333882671",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1766398095325.0,
     "source_on_save": false,
     "relative_order": 7,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "60,0",
-        "scrollLine": "23"
+        "cursorPosition": "61,0",
+        "scrollLine": "34"
     },
     "folds": "",
     "lastKnownWriteTime": 1767199260,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1767199260749,
+    "last_content_update": 1770217074069,
     "read_only": false,
     "read_only_alternatives": []
 }
