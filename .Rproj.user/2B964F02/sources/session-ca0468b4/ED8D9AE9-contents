@@ -1,6 +1,4 @@
 #### GLLVM analysis 
-
-
 library(gllvm)
 
 ps <- alldat.N[[2]]
