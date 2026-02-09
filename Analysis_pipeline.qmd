@@ -12,15 +12,9 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 
 **Data availability.**
 
-Repository: (GitHub link)\
+Repository: <https://github.com/root-fungi/Root_fungi_DADA2/tree/main>\
 Sequence data: (ENA accession)\
 Metadata: PlutoF... ... `Data_S1_metadata.csv`
-
-## Reproducibility overview
-
-This supplementary document integrates static figures and result tables generated from analyses run externally on a computing environment.
-
-All figures (PNG) and tables (CSV) are stored within the project repository using relative paths. Rendering this document therefore requires cloning the repository and opening the Quarto file from the repository root.
 
 ## Study sites and sampling
 
@@ -318,15 +312,6 @@ Distance-based redundancy analysis (dbRDA) was conducted on robust Aitchison dis
 **Figure S4**: Distance-based redundancy analysis (dbRDA) of root-associated fungal communities based on robust Aitchison distances. Points are colored by habitat; site was included as a conditioning variable.
 
 **Table S4**: Permutation tests (999 permutations) for the dbRDA model based on robust Aitchison distances. The table reports tests for the habitat term (S4a) and for the constrained axes (S4b).
-
-|          |         |         |          |       |         |
-|----------|---------|---------|----------|-------|---------|
-|          |         | Df      | Variance | F     | Pr(\>F) |
-| Model    | Habitat | 2       | 22.718   | 1.408 | 0.001   |
-| Residual | 54      | 435.501 |          |       |         |
-| Axes     | CAP1    | 1       | 14.579   | 1.808 | 0.001   |
-| CAP2     | 1       | 8.139   | 1.009    | 0.470 |         |
-| Residual | 54      | 435.501 |          |       |         |
 
 ```{r}
 #| echo: false
