@@ -1,0 +1,5 @@
+Filtering_level,OTU_count_soil+root,Samples_soil+root,OTU_count_root_only,Samples_root_only
+No filtering,18451,132,13225,120
+OTU present in 2/4,7174,132,4386,120
+OTU present in 3/4,4870,131,2966,120
+OTU present in 4/4,2875,113,1904,103
