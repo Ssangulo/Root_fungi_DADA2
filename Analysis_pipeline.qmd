@@ -1,6 +1,6 @@
 ---
 title: "Appendix"
-format: pdf
+format: html
 editor: visual
 ---
 
@@ -467,7 +467,7 @@ test_site <- data.frame(
 )
 
 # Output paths
-out_dir <- "/data/lastexpansion/danieang/objects"
+out_dir <- "/data/lastexpansion/_ang/objects"
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
 write.csv(tab_perma,  file.path(out_dir, "Table_S6_PERMANOVA.csv"), row.names = FALSE)
@@ -554,7 +554,7 @@ tab_s7 <- data.frame(
 )
 
 # Output
-out <- "/data/lastexpansion/danieang/objects/Table_S7_centroid_model.csv"
+out <- "/data/lastexpansion/_ang/objects/Table_S7_centroid_model.csv"
 dir.create(dirname(out), showWarnings = FALSE, recursive = TRUE)
 write.csv(tab_s7, out, row.names = FALSE)
 
@@ -645,8 +645,8 @@ library(betareg)
 library(patchwork)
 
 
-out_fig_dir <- "/data/lastexpansion/danieang/objects" 
-out_tab_dir <- "/data/lastexpansion/danieang/objects" 
+out_fig_dir <- "/data/lastexpansion/_ang/objects" 
+out_tab_dir <- "/data/lastexpansion/_ang/objects" 
 
 set.seed(1)
 
