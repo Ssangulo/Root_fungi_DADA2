@@ -134,9 +134,9 @@ print(table(
 conda activate funguild
 cd FUNGuild/
   
-  python Guilds_v1.1.py -otu /data/lastexpansion/danieang/data/trimmed/mergedPlates/funguild_input_nosoilcontrols.txt -db fungi
+  python Guilds_v1.1.py -otu /data/lastexpansion/data/trimmed/mergedPlates/funguild_input_nosoilcontrols.txt -db fungi
 
-#Result saved to '/data/lastexpansion/danieang/data/trimmed/mergedPlates/funguild_input_nosoilcontrols.guilds.txt'
+#Result saved to '/data/lastexpansion//data/trimmed/mergedPlates/funguild_input_nosoilcontrols.guilds.txt'
 #4392 OTUs (taxa) in input
 #3260 matching taxonomy records found in the FUNGuild DB (so taxonomy lookup worked well)
 #1898 OTUs assigned guilds → 43.2% assignment rate
@@ -147,7 +147,7 @@ cd FUNGuild/
 # CLEANING F DATA
 
 funguild_data <- read.table(
-  "/data/lastexpansion/danieang/data/trimmed/mergedPlates/funguild_input_nosoilcontrols.guilds.txt",
+  "/data/lastexpansion//data/trimmed/mergedPlates/funguild_input_nosoilcontrols.guilds.txt",
   header = TRUE, sep = "\t", stringsAsFactors = FALSE, check.names = FALSE
 )
 
@@ -374,7 +374,7 @@ p_guild <- ggplot(
 
 
 ggsave(
-  filename = "/data/lastexpansion/danieang/Plots2/functional_guilds_mean_reads_by_habitat.png",
+  filename = "/data/lastexpansion/Plots2/functional_guilds_mean_reads_by_habitat.png",
   plot     = p_guild,
   width    = 10,
   height   = 4,

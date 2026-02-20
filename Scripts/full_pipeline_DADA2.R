@@ -17,31 +17,31 @@ cd data
 mikdir seqfiles
 
 # Open the terminal and navigate to your sequencing raw_data folder. For me it is here 
-cd /data/bigexpansion/michadm/seqdata/2024-06-10_Novogene_NovaSeq_250PE_Pernettya_fungi_metabarcoding_DanielAnguloSerrano/X204SC24050751-Z01-F001/01.RawData/
-cd /data/bigexpansion/michadm/seqdata/2024-06-20_Novogene_NovaSeq_250PE_Pernettya_fungi_metabarcoding_DanielAnguloSerrano_batch2/X204SC24050751-Z01-F002/01.RawData/
+cd /data/bigexpansion/michadm/seqdata/2024-06-10_Novogene_NovaSeq_250PE_Pernettya_fungi_metabarcoding_/X204SC24050751-Z01-F001/01.RawData/
+cd /data/bigexpansion/michadm/seqdata/2024-06-20_Novogene_NovaSeq_250PE_Pernettya_fungi_metabarcoding__batch2/X204SC24050751-Z01-F002/01.RawData/
   
   
   # Copy raw data folder to my data directory 
-  cp -r /data/bigexpansion/michadm/seqdata/2024-06-10_Novogene_NovaSeq_250PE_Pernettya_fungi_metabarcoding_DanielAnguloSerrano/X204SC24050751-Z01-F001/01.RawData /data/lastexpansion/danieang/data/
+  cp -r /data/bigexpansion//seqdata/2024-06-10_Novogene_NovaSeq_250PE_Pernettya_fungi_metabarcoding_/X204SC24050751-Z01-F001/01.RawData /data/lastexpansion//data/
   
   #Create folders for each plate and split samples by plate
   
-  cd /data/lastexpansion/danieang/data/rawdata/
+  cd /data/lastexpansion/_ang/data/rawdata/
   mkdir P1 P2 P3 P4
-cp -r *_P1 /data/lastexpansion/danieang/data/newrawdata01/P1/
-  cp -r *_P2 /data/lastexpansion/danieang/data/newrawdata01/P2/
-  cp -r *_P3 /data/lastexpansion/danieang/data/newrawdata01/P3/
-  cp -r *_P4 /data/lastexpansion/danieang/data/newrawdata01/P4/
+cp -r *_P1 /data/lastexpansion/_ang/data/newrawdata01/P1/
+  cp -r *_P2 /data/lastexpansion/_ang/data/newrawdata01/P2/
+  cp -r *_P3 /data/lastexpansion/_ang/data/newrawdata01/P3/
+  cp -r *_P4 /data/lastexpansion/_ang/data/newrawdata01/P4/
   
   #Since I received the raw data in two separated batches, need to concatenate the files
   #Concatenating the two forward file togheter and the two reverse files togheter -> this script is for P1
   
-  cd /data/lastexpansion/danieang/data/newrawdata01/P1/
+  cd /data/lastexpansion/_ang/data/newrawdata01/P1/
   mkdir seqfiles
-cp **/*.fq.gz /data/lastexpansion/danieang/data/newrawdata01/P1/seqfiles
+cp **/*.fq.gz /data/lastexpansion/_ang/data/newrawdata01/P1/seqfiles
 
 
-cd /data/lastexpansion/danieang/data/newrawdata01/P1/seqfiles
+cd /data/lastexpansion/_ang/data/newrawdata01/P1/seqfiles
 
 # Get a list of unique sample prefixes (up to the FKDL part of naming) THIS WILL WORK ONLY FOR P1-> CHANGE SCRIPT FOR OTHER PLATES
 
@@ -70,10 +70,10 @@ echo "Reverse reads for $sample combined into ${sample}_concat_2.fq.gz"
 
 done
 
-#Move concatenated files to /data/lastexpansion/danieang/data/newrawdata01/P1/concatP1
+#Move concatenated files to /data/lastexpansion/_ang/data/newrawdata01/P1/concatP1
 
-mv *_concat_1.fq.gz /data/lastexpansion/danieang/data/newrawdata01/P1/concatP1
-mv *_concat_2.fq.gz /data/lastexpansion/danieang/data/newrawdata01/P1/concatP1
+mv *_concat_1.fq.gz /data/lastexpansion/_ang/data/newrawdata01/P1/concatP1
+mv *_concat_2.fq.gz /data/lastexpansion/_ang/data/newrawdata01/P1/concatP1
 
 #I will start demultiplexing P1
 
@@ -88,7 +88,7 @@ conda activate myenv
 dos2unix euka01_repbarcodes.txt
 
 echo 'for i in *1.fq.gz; do bn=${i/1.fq.gz};
-sabre pe -f ${bn}1.fq.gz -r ${bn}2.fq.gz -b /data/lastexpansion/danieang/data/euka01_repbarcodes.txt -u ${bn}unassigned1.fq -w ${bn}unassigned.fq;
+sabre pe -f ${bn}1.fq.gz -r ${bn}2.fq.gz -b /data/lastexpansion/_ang/data/euka01_repbarcodes.txt -u ${bn}unassigned1.fq -w ${bn}unassigned.fq;
 mv rep1f.fq ${bn}_rep1f.fq;
 mv rep1r.fq ${bn}_rep1r.fq;
 mv rep2f.fq ${bn}_rep2f.fq;
@@ -150,8 +150,8 @@ bash ITSrep4.sh
 ## make a new folder called p1trimmed
 mkdir P1trimmed
 ## move all your demultiplexed, oligo-trimmed files there.
-mv *trim1.fq.gz /data/lastexpansion/danieang/data/trimmed/P1trimmed/
-mv *trim2.fq.gz /data/lastexpansion/danieang/data/trimmed/P1trimmed/
+mv *trim1.fq.gz /data/lastexpansion/_ang/data/trimmed/P1trimmed/
+mv *trim2.fq.gz /data/lastexpansion/_ang/data/trimmed/P1trimmed/
 
   
   #Open R inside conda env
@@ -168,8 +168,8 @@ library(Biostrings)
 packageVersion("Biostrings")
 
 ## Making filepath based on where the trimmed files are. Now is a good point to follow the DADA2 tutorial while trying these steps
-setwd("/data/lastexpansion/danieang/data/trimmed/P1trimmed/")
-path <- "/data/lastexpansion/danieang/data/trimmed/P1trimmed/"
+setwd("/data/lastexpansion/_ang/data/trimmed/P1trimmed/")
+path <- "/data/lastexpansion/_ang/data/trimmed/P1trimmed/"
 list.files(path)
 fnFs <- sort(list.files(path, pattern=".trim1.fq.gz", full.names = TRUE))
 fnRs <- sort(list.files(path, pattern=".trim2.fq.gz", full.names = TRUE))
@@ -383,24 +383,24 @@ table(nchar(getSequences(P1seqtabpsPP)))
 
 ######## ### 
 
-#Moving the sequence table of each plate into new working directory /data/lastexpansion/danieang/data/trimmed/mergedPlates/
+#Moving the sequence table of each plate into new working directory /data/lastexpansion/_ang/data/trimmed/mergedPlates/
 
 
-saveRDS(P1seqtab, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P1seqtab.rds")
-saveRDS(P1seqtabPP, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P1seqtabPP.rds")
-saveRDS(P1seqtabpsPP, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P1seqtabpsPP.rds")
+saveRDS(P1seqtab, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P1seqtab.rds")
+saveRDS(P1seqtabPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P1seqtabPP.rds")
+saveRDS(P1seqtabpsPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P1seqtabpsPP.rds")
 
-saveRDS(P2seqtab, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P2seqtab.rds")
-saveRDS(P2seqtabPP, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P2seqtabPP.rds")
-saveRDS(P2seqtabpsPP, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P2seqtabpsPP.rds")
+saveRDS(P2seqtab, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P2seqtab.rds")
+saveRDS(P2seqtabPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P2seqtabPP.rds")
+saveRDS(P2seqtabpsPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P2seqtabpsPP.rds")
 
-saveRDS(P3seqtab, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P3seqtab.rds")
-saveRDS(P3seqtabPP, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P3seqtabPP.rds")
-saveRDS(P3seqtabpsPP, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P3seqtabpsPP.rds")
+saveRDS(P3seqtab, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P3seqtab.rds")
+saveRDS(P3seqtabPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P3seqtabPP.rds")
+saveRDS(P3seqtabpsPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P3seqtabpsPP.rds")
 
-saveRDS(P4seqtab, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P4seqtab.rds")
-saveRDS(P4seqtabPP, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P4seqtabPP.rds")
-saveRDS(P4seqtabpsPP, "/data/lastexpansion/danieang/data/trimmed/mergedPlates/P4seqtabpsPP.rds")
+saveRDS(P4seqtab, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P4seqtab.rds")
+saveRDS(P4seqtabPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P4seqtabPP.rds")
+saveRDS(P4seqtabpsPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P4seqtabpsPP.rds")
 
 
 
@@ -424,7 +424,7 @@ if (!require("BiocManager", quietly = TRUE))
 library(ggplot2)
 
 ##loading objects in new working directory
-setwd("/data/lastexpansion/danieang/data/trimmed/mergedPlates/")
+setwd("/data/lastexpansion/_ang/data/trimmed/mergedPlates/")
 
 P1seqtab <- readRDS("P1seqtab.rds")
 P1seqtabPP <- readRDS("P1seqtabPP.rds")
@@ -462,9 +462,9 @@ dim(merged_seqtabpsPP.nochim)
 
 ## getting sequences
 
-uniquesToFasta(merged_seqtab.nochim, fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates/merged_seqtab.nochim.fasta", ids=paste0("OTU", seq(length(getSequences(merged_seqtab.nochim)))))
-uniquesToFasta(merged_seqtabPP.nochim, fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates/merged_seqtabPP.nochim.fasta", ids=paste0("OTU", seq(length(getSequences(merged_seqtabPP.nochim)))))
-uniquesToFasta(merged_seqtabpsPP.nochim, fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates/merged_seqtabpsPP.nochim.fasta", ids=paste0("OTU", seq(length(getSequences(merged_seqtabpsPP.nochim)))))
+uniquesToFasta(merged_seqtab.nochim, fout="/data/lastexpansion/_ang/data/trimmed/mergedPlates/merged_seqtab.nochim.fasta", ids=paste0("OTU", seq(length(getSequences(merged_seqtab.nochim)))))
+uniquesToFasta(merged_seqtabPP.nochim, fout="/data/lastexpansion/_ang/data/trimmed/mergedPlates/merged_seqtabPP.nochim.fasta", ids=paste0("OTU", seq(length(getSequences(merged_seqtabPP.nochim)))))
+uniquesToFasta(merged_seqtabpsPP.nochim, fout="/data/lastexpansion/_ang/data/trimmed/mergedPlates/merged_seqtabpsPP.nochim.fasta", ids=paste0("OTU", seq(length(getSequences(merged_seqtabpsPP.nochim)))))
 
 ## Make LULU OTU tables (OTUs: rows, samples: columns)
 npool.lulu <- merged_seqtab.nochim
@@ -504,7 +504,7 @@ blastn -db merged_seqtabPP.nochim.fasta -outfmt '6 qseqid sseqid pident' -out Po
 blastn -db merged_seqtabpsPP.nochim.fasta -outfmt '6 qseqid sseqid pident' -out psPool_match_list.txt -qcov_hsp_perc 80 -perc_identity 84 -query merged_seqtabpsPP.nochim.fasta
 
 ### Now running LULU algorithm in R 
-setwd("/data/lastexpansion/danieang/data/trimmed/mergedPlates/")
+setwd("/data/lastexpansion/_ang/data/trimmed/mergedPlates/")
 NoPool_match_list.txt <- read.table("NoPool_match_list.txt")
 str(NoPool_match_list.txt)
 str(npool.lulu)
@@ -582,11 +582,11 @@ nopool.lulu.index <- index.info(nopool.lulu)
 pool.lulu.index <- index.info(pool.lulu)
 pspool.lulu.index <- index.info(pspool.lulu)
 
-## Stopping here. saving at: /data/lastexpansion/danieang/data/trimmed/mergedPlates/
+## Stopping here. saving at: /data/lastexpansion/_ang/data/trimmed/mergedPlates/
 
 save.image(file = "merged_ITS.RData")
 
-#/data/lastexpansion/danieang/data/trimmed/mergedPlates/merged_ITS.RDATA
+#/data/lastexpansion/_ang/data/trimmed/mergedPlates/merged_ITS.RDATA
 
 ## need to subtract equivalent OTU sequences from NTCs, extraction blanks, field blanks etc.
 
@@ -842,11 +842,11 @@ nopool.lulu.controlled_1 <- lapply(nopool.lulu.controlled_1, as.matrix)
 pool.lulu.controlled_1 <- lapply(pool.lulu.controlled_1, as.matrix)
 pspool.lulu.controlled_1 <- lapply(pspool.lulu.controlled_1, as.matrix)
 
-uniquesToFasta(as.matrix(nopool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates/nopool_wSoil.fasta", ids=paste0("OTU", seq(length(getSequences(nopool.lulu.controlled_1[[1]])))))
-uniquesToFasta(as.matrix(pool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates/pool_wSoil.fasta", ids=paste0("OTU", seq(length(getSequences(pool.lulu.controlled_1[[1]])))))
-uniquesToFasta(as.matrix(pspool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/danieang/data/trimmed/mergedPlates/pspool_wSoil.fasta", ids=paste0("OTU", seq(length(getSequences(pspool.lulu.controlled_1[[1]])))))
+uniquesToFasta(as.matrix(nopool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_wSoil.fasta", ids=paste0("OTU", seq(length(getSequences(nopool.lulu.controlled_1[[1]])))))
+uniquesToFasta(as.matrix(pool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_wSoil.fasta", ids=paste0("OTU", seq(length(getSequences(pool.lulu.controlled_1[[1]])))))
+uniquesToFasta(as.matrix(pspool.lulu.controlled_1[[1]]), fout="/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_wSoil.fasta", ids=paste0("OTU", seq(length(getSequences(pspool.lulu.controlled_1[[1]])))))
 
-sequence_lengths3 <- nchar(getSequences("/data/lastexpansion/danieang/data/trimmed/mergedPlates/nopool_wSoil.fasta"))
+sequence_lengths3 <- nchar(getSequences("/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_wSoil.fasta"))
 summary(sequence_lengths3)
 
 
@@ -933,9 +933,9 @@ saveRDS(rg4.poolps, "rg4.poolps.rds")
 saveRDS(rg4.pspoolps, "rg4.pspoolps.rds")
 
 
-nopoolps_wSoil <- "/data/lastexpansion/danieang/data/trimmed/mergedPlates/nopool_phyloseq_soil.rds"
-poolps_wSoil <- "/data/lastexpansion/danieang/data/trimmed/mergedPlates/pool_phyloseq_soil.rds" 
-pspoolps_wSoil <- "/data/lastexpansion/danieang/data/trimmed/mergedPlates/pspool_phyloseq_soil.rds"
+nopoolps_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_phyloseq_soil.rds"
+poolps_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_phyloseq_soil.rds" 
+pspoolps_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_phyloseq_soil.rds"
 
 
 total_reads <- sum(phyloseq::otu_table(nopoolps_wSoil))
@@ -953,19 +953,19 @@ save.image("merged_ITS2.RData")
 #Moving to taxonomic assignment with DADA2
 
 #Download the general release FASTA file for fungi and point to the path
-unite <- "/data/lastexpansion/danieang/data/database/UNITE_small.fasta"
+unite <- "/data/lastexpansion/_ang/data/database/UNITE_small.fasta"
 
 # Path to curated sequences FASTA file
-nopool_fasta_wSoil <- "/data/lastexpansion/danieang/data/trimmed/mergedPlates/nopool_wSoil.fasta"
-pool_fasta_wSoil <- "/data/lastexpansion/danieang/data/trimmed/mergedPlates/pool_wSoil.fasta"
-pspool_fasta_wSoil <- "/data/lastexpansion/danieang/data/trimmed/mergedPlates/pspool_wSoil.fasta"
+nopool_fasta_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_wSoil.fasta"
+pool_fasta_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_wSoil.fasta"
+pspool_fasta_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_wSoil.fasta"
 
 library(Biostrings)
 
 # Reading sequences from FASTA file
-nopool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/danieang/data/trimmed/mergedPlates/nopool_wSoil.fasta")
-pool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/danieang/data/trimmed/mergedPlates/pool_wSoil.fasta")
-pspool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/danieang/data/trimmed/mergedPlates/pspool_wSoil.fasta")
+nopool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_wSoil.fasta")
+pool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_wSoil.fasta")
+pspool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_wSoil.fasta")
 
 
 sequence_lengths <- nchar(getSequences(nopool_fasta_wSoil))
@@ -1017,21 +1017,21 @@ print(summary_wSoil_df)
 
 # Load the phyloseq objects 
 
-nopoolps_wSoil <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/nopool_phyloseq_soil.rds")
-poolps_wSoil <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/pool_phyloseq_soil.rds")
-pspoolps_wSoil <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/pspool_phyloseq_soil.rds")
+nopoolps_wSoil <- readRDS("/data/lastexpansion//data/trimmed/mergedPlates/nopool_phyloseq_soil.rds")
+poolps_wSoil <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_phyloseq_soil.rds")
+pspoolps_wSoil <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_phyloseq_soil.rds")
 
-rg2.nopoolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg2.nopoolps.rds")
-rg2.poolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg2.poolps.rds")
-rg2.pspoolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg2.pspoolps.rds")
+rg2.nopoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg2.nopoolps.rds")
+rg2.poolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg2.poolps.rds")
+rg2.pspoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg2.pspoolps.rds")
 
-rg3.nopoolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg3.nopoolps.rds")
-rg3.poolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg3.poolps.rds")
-rg3.pspoolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg3.pspoolps.rds")
+rg3.nopoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg3.nopoolps.rds")
+rg3.poolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg3.poolps.rds")
+rg3.pspoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg3.pspoolps.rds")
 
-rg4.nopoolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg4.nopoolps.rds")
-rg4.poolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg4.poolps.rds")
-rg4.pspoolps <- readRDS("/data/lastexpansion/danieang/data/trimmed/mergedPlates/rg4.pspoolps.rds")
+rg4.nopoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg4.nopoolps.rds")
+rg4.poolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg4.poolps.rds")
+rg4.pspoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg4.pspoolps.rds")
 
 #Convert taxonomy table into phyloseq compatible format (matrix)
 tax_table_nopoolps <- tax_table(taxa_nopool_wSoil_80)
