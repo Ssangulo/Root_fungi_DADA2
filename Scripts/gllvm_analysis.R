@@ -106,8 +106,8 @@ fit_nb_2 <- gllvm(
   method      = "VA"
 )
 
-saveRDS(fit_nb_2, file = "/data/lastexpansion/danieang/models/fit_nb_2.rds")
-#fit_nb_2 <- readRDS("/data/lastexpansion/danieang/models/fit_nb_2.rds")
+saveRDS(fit_nb_2, file = "/data/lastexpansion/_ang/models/fit_nb_2.rds")
+#fit_nb_2 <- readRDS("/data/lastexpansion/_ang/models/fit_nb_2.rds")
 
 #Trying 2 latent variables -- worse AIC fit than lv = 1 -> keeping fit_nb_2
 fit_nb_2_2 <- gllvm(
@@ -178,7 +178,7 @@ AIC(fit_nb_1); logLik(fit_nb_1)
 anova(fit_poisson, fit_nb)
 
 # Save the default residual diagnostics
-png(filename = "/data/lastexpansion/danieang/Plots2/gllvm_fit_nb_2_residuals.png", width = 2400, height = 1200, res = 500)
+png(filename = "/data/lastexpansion/_ang/Plots2/gllvm_fit_nb_2_residuals.png", width = 2400, height = 1200, res = 500)
 par(mfrow = c(1,1))
 par(mar = c(5,5,2,2))
 plot(fit_nb_2, var.colors = 1)   
@@ -186,7 +186,7 @@ dev.off()
 
 
 graphics.off()
-png("/data/lastexpansion/danieang/Plots2/gllvm_fit_nb_2_residuals.png",
+png("/data/lastexpansion/_ang/Plots2/gllvm_fit_nb_2_residuals.png",
     width = 3600, height = 2400, res = 300)
 
 par(mfrow = c(3, 2), mar = c(4, 4, 2, 1), ask = FALSE)
@@ -381,12 +381,12 @@ head(genus_table, 20)
 
 write_xlsx(
   genus_table,
-  "/data/lastexpansion/danieang/models/genus_table_NEW.xlsx"
+  "/data/lastexpansion/_ang/models/genus_table_NEW.xlsx"
 )
 
 write.csv(
   genus_table,
-  "/data/lastexpansion/danieang/models/genusr_table_NEW.csv"
+  "/data/lastexpansion/_ang/models/genusr_table_NEW.csv"
 )
 
 ######## HEATMAP
@@ -463,7 +463,7 @@ p_heat <- ggplot(heatmap_df,
   )
 
 ggsave(
-  filename = "/data/lastexpansion/danieang/models/heatmap_15_WMEAN.png",
+  filename = "/data/lastexpansion/_ang/models/heatmap_15_WMEAN.png",
   plot     = p_heat,
   width    = 8,
   height   = 10,
@@ -595,7 +595,7 @@ p_bar_w <- ggplot(
 
 
 ggsave(
-  filename = "/data/lastexpansion/danieang/models/barplot_15_NEW.png",
+  filename = "/data/lastexpansion/_ang/models/barplot_15_NEW.png",
   plot = p_bar_w,
   width = 8,
   height = 10,
@@ -658,7 +658,7 @@ panel_AB <- p_heat_clean + p_bar_clean +
 
 
 ggsave(
-  filename = "/data/lastexpansion/danieang/models/panel_AB_heatmap_barplot_NEW.png",
+  filename = "/data/lastexpansion/_ang/models/panel_AB_heatmap_barplot_NEW.png",
   plot     = panel_AB,
   width    = 11,
   height   = 6.5,
