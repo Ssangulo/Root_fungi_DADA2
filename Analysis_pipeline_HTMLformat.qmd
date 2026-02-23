@@ -3,6 +3,10 @@ title: "Appendix"
 format:
   html:
     embed-resources: true
+    toc: true
+    toc-depth: 3
+    toc-title: "Contents"
+    toc-location: left
 editor: visual
 ---
 
