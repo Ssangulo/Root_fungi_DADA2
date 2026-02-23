@@ -1,0 +1,33 @@
+# R project files
+.Rproj.user/
+*.Rproj
+.Rhistory
+.RData
+.httr-oauth
+
+# R objects / data
+objects/
+Data_files/
+tables/
+*.rds
+*.rda
+*.RData
+
+# Scripts (stored elsewhere)
+Scripts/
+
+# Figures and rendered outputs (HTML is self-contained)
+figures/
+*.pdf
+*.png
+*.jpg
+*.jpeg
+
+# Quarto / knitr cache
+*_cache/
+*_files/
+*.knit.md
+*.utf8.md
+Analysis_pipeline_PDFformat*
+Analysis_pipeline.qmd
+Appendix*
