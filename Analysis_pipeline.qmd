@@ -1,24 +1,7 @@
 ---
 title: "Appendix"
-format:
-  pdf:
-    toc: true
-    toc-depth: 3
-    toc-title: "Table of Contents"
-    pdf-engine: xelatex
-    documentclass: article
-    geometry: "margin=1in"
-    code-overflow: wrap
-execute:
-  message: false
-  warning: false
-header-includes:
-  - '\usepackage{caption}'
-  - '\captionsetup[figure]{labelformat=empty,labelsep=none}'
-  - '\usepackage{fvextra}'
-  - '\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}'
-  - '\usepackage{etoolbox}'
-  - '\apptocmd{\tableofcontents}{\clearpage}{}{}'
+format: html
+editor: visual
 ---
 
 ## Overview and reproducibility
@@ -30,13 +13,10 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 **Data availability.**
 
 Repository: To be provided upon acceptance\
-Sequence data: ENA accession number PRJEB107725\
+Sequence data: ENA accession number PRJEB107725 \
 Metadata: `Data_S1_metadata.csv, Data_S3_soil.csv`
 
 ```{r}
-#| echo: false
-#| message: false
-#| warning: false
 
 # Output folders used by table/figure chunks
 out_fig_dir <- "figures"
@@ -101,9 +81,8 @@ tab_s3 <- read.csv("tables/Table_S3_OTU_filtering_summary.csv", check.names = FA
 
 kable(
   tab_s3,
-  col.names = c("Filtering level", "OTUs (all)", "Samples (all)", "OTUs (root)", "Samples (root)"),
   caption = "Table S3. Number of OTUs and samples after applying different replicate control filtering thresholds. The table shows results for both soil and root samples combined and only root samples."
-) |> kableExtra::kable_styling(latex_options = "scale_down")
+)
 ```
 
 ------------------------------------------------------------------------
@@ -128,25 +107,27 @@ kable(
 
 ## Taxonomic composition of root and soil communities
 
-![](figures/Fig_S1_Venn.png)
+![](figures/FigS1_Venn.png)
 
 **Figure S1**: Venn diagram of taxonomic assignments across sampling sites, in the root only dataset, but previous to soil sequences removal. Venn diagrams illustrate the overlap of OTU taxonomic assignments across four study sites: La Nevera (NV), Las Domínguez (DOM), Belmira (BEL), and Matarredonda (MA). Only OTUs with confirmed assignments at each taxonomic level are included.
 
 ------------------------------------------------------------------------
 
-![](figures/Fig_S2.png)
+![](figures/FigS2.png)
 
 **Figure S2**: Taxonomic composition in root samples along the elevational gradient. Relative read abundances are shown at two taxonomic ranks:  A) Class and B) Genus. Each bar represents an individual root sample, grouped by habitat: Forest (2700-3300 m), Subpáramo (3300-3500 m), and Páramo (3800 m). Study sites are indicated on the y-axis. *Code: see "MicroViz code for taxonomic barplots" below.*
 
 ------------------------------------------------------------------------
 
-![](figures/Fig_S3.png)
+![](figures/FigS3.png)
 
 **Figure S3**: Taxonomic composition in soil samples, collected at each of the sampling locations. Relative read abundances are shown at three taxonomic ranks:  A) Phylum, B) Genus, and C) Order. Each bar represents an individual root sample, grouped by habitat: Forest (2700-3300 m), Subpáramo (3300-3500 m), and Páramo (3800 m). Study sites are indicated on the y-axis. *Code: see "MicroViz code for taxonomic barplots" below.*
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "MicroViz code for taxonomic barplots (executed on server)"
 
 # MicroViz taxonomic barplots
 # Code executed on remote server; plots saved as PNG and embedded above.
@@ -271,7 +252,7 @@ genus <- ps_filtered %>%
 
 ```
 
-## Community composition analyses
+# Community composition analyses
 
 This section provides detailed statistical analyses supporting the patterns of root-associated fungal community composition described in the main text. Several of these analyses form the basis of results reported in the main manuscript; here we document the full model specifications, test statistics, and complementary ordinations to ensure transparency and reproducibility.
 
@@ -293,21 +274,21 @@ library(knitr)
 
 tab_terms <- read.csv("tables/Table_S5_dbRDA_terms.csv")
 kable(tab_terms, digits = 3,
-      caption = "Table S5a. dbRDA permutation tests (by term; 999 permutations).") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+      caption = "Table S5a. dbRDA permutation tests (by term; 999 permutations).")
 ```
 
 ```{r}
 #| echo: false
 tab_axis <- read.csv("tables/Table_S5_dbRDA_axes.csv")
 kable(tab_axis, digits = 3,
-      caption = "Table S5b. dbRDA permutation tests (by constrained axis; 999 permutations).") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+      caption = "Table S5b. dbRDA permutation tests (by constrained axis; 999 permutations).")
 ```
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "Code used to generate Figure S4 and Table S5 (executed on server)"
 
 #Running dbRDA with robust aitchison
 library(phyloseq)
@@ -389,8 +370,7 @@ Beta-dispersion tests indicated higher within-habitat variability in forests com
 library(knitr)
 
 tab_s6 <- read.csv("tables/Table_S6_PERMANOVA.csv")
-kable(tab_s6, digits = 3, caption = "Table S6a. PERMANOVA (adonis2) results by term.") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+kable(tab_s6, digits = 3, caption = "Table S6a. PERMANOVA (adonis2) results by term.")
 ```
 
 ```{r}
@@ -400,8 +380,7 @@ test_hab <- read.csv("tables/Table_S6_betadisper_test_habitat.csv")
 
 kable(disp_hab, digits = 3,
       caption = paste0("Table S6b. Habitat beta-dispersion (distance to centroid). Permutation test p = ",
-                       signif(test_hab$p_value[1], 3), ".")) |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+                       signif(test_hab$p_value[1], 3), "."))
 ```
 
 ```{r}
@@ -409,13 +388,14 @@ kable(disp_hab, digits = 3,
 test_site <- read.csv("tables/Table_S6_betadisper_test_site.csv")
 
 kable(test_site, digits = 3,
-      caption = "Table S6c. Site beta-dispersion permutation test.") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+      caption = "Table S6c. Site beta-dispersion permutation test.")
 ```
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "Code used to generate Tables S6a–S6c (executed on server)"
 
 ps <- individual_ps #phyloseq obj
 
@@ -499,24 +479,26 @@ write.csv(test_site,  file.path(out_dir, "Table_S6_betadisper_test_site.csv"), r
 
 ```
 
-### Centroid-based turnover model
+## Centroid-based turnover model
 
 To quantify the magnitude of community turnover across habitats while accounting for spatial structure, we calculated the Aitchison distance of each sample to its site-specific centroid and modelled turnover as a function of habitat, site, and their interaction. Habitat had a strong effect on turnover magnitude, whereas the habitat × site interaction was not significant, indicating consistent habitat-associated turnover across geographically isolated páramo regions (Table S7).
+
+**Table S7**: Linear model results for centroid-based turnover.
 
 ```{r}
 #| echo: false
 library(knitr)
 
 tab_s7 <- read.csv("tables/Table_S7_centroid_model.csv")
-kable(tab_s7, digits = 3,
-      caption = "Table S7. Linear model results for centroid-based turnover.") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+kable(tab_s7, digits = 3)
 
 ```
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "Code used to generate Table S7 (executed on server)"
 
 library(phyloseq)
 library(vegan)
@@ -578,7 +560,7 @@ write.csv(tab_s7, out, row.names = FALSE)
 
 ```
 
-## Abundance-based beta diversity partitioning
+### Abundance-based beta diversity partitioning
 
 Bray–Curtis dissimilarities were partitioned into balanced variation and abundance gradients across taxonomic levels using the `betapart` package. Metrics were calculated from rarefied abundance data.
 
@@ -592,7 +574,7 @@ kable(
   tab_s8,
   digits = 4,
   caption = "Table S8. Bray–Curtis beta-diversity partitioning across taxonomic levels and sites."
-) |> kableExtra::kable_styling(latex_options = "scale_down")
+)
 ```
 
 ## Beta-regression models
@@ -601,7 +583,7 @@ To quantify elevational trends in the relative abundance of dominant fungal line
 
 We focus on helotiales and sebacinales, the two most abundant orders, which also showed the only significant elevation responses. For both orders, fitted relationships and raw data are shown in Figure 2, while full model summaries are provided in Table S9. Elevation effects for the eight most abundant orders are summarized in Table S10.
 
-Model diagnostics were examined to assess fit and identify potential violations of distributional assumptions. Diagnostic plots include Pearson residuals versus fitted values and elevation, quantile residual Q–Q plots, and leverage values (Figures S5–S6).
+Model diagnostics were examined to assess fit and identify potential violations of distributional assumptions. Diagnostic plots include Pearson residuals versus fitted values and elevation, quantile residual Q–Q plots, and leverage values (Figures S6–S7).
 
 **Table S9**:
 
@@ -611,16 +593,14 @@ library(knitr)
 
 tab_s9_helot <- read.csv("tables/Table_S9_betareg_helotiales.csv")
 kable(tab_s9_helot, digits = 4,
-      caption = "Table S9a. Beta regression summary for helotiales (mean model coefficients and precision (phi)).") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+      caption = "Table S9a. Beta regression summary for helotiales (mean model coefficients and precision (phi)).")
 ```
 
 ```{r}
 #| echo: false
 tab_s9_seba <- read.csv("tables/Table_S9_betareg_sebacinales.csv")
 kable(tab_s9_seba, digits = 4,
-      caption = "Table S9b. Beta regression summary for sebacinales (mean model coefficients and precision (phi)).") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+      caption = "Table S9b. Beta regression summary for sebacinales (mean model coefficients and precision (phi)).")
 ```
 
 ------------------------------------------------------------------------
@@ -633,28 +613,29 @@ library(knitr)
 
 tab_s10 <- read.csv("tables/Table_S10_betareg_elevation_effects.csv")
 kable(tab_s10, digits = 4,
-      caption = "Table S10. Elevation effects from beta regression models for the dominant orders (mean submodel), with pseudo-R².") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+      caption = "Table S10. Elevation effects from beta regression models for the dominant orders (mean submodel), with pseudo-R².")
 ```
 
 ------------------------------------------------------------------------
 
-![](figures/Fig_S5_betareg_diagnostics_helotiales.png)
+![](figures/Fig_S7_betareg_diagnostics_helotiales.png)
 
-**Figure S5**: Diagnostic plots for the beta-regression model of Helotiales. *Code: see "Beta-regression models" below.*
+**Figure S6**: Diagnostic plots for the beta-regression model of Helotiales. *Code: see "Beta-regression models" below.*
 
 ------------------------------------------------------------------------
 
-![](figures/Fig_S6_betareg_diagnostics_sebacinales.png)
+![](figures/Fig_S8_betareg_diagnostics_sebacinales.png)
 
-**Figure S6**: Diagnostic plots for the beta-regression model of Sebacinales. *Code: see "Beta-regression models" below.*
+**Figure S7**: Diagnostic plots for the beta-regression model of Sebacinales. *Code: see "Beta-regression models" below.*
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "Beta-regression models (executed on remote server)"
 
 # This code fits beta-regression models for dominant fungal orders,
-# generates Tables S9–S10, and exports Figures 2a and S5–S6 as PNG files.
+# generates Tables S9–S10, and exports Figures 2a and S6–S7 as PNG files.
 
 library(phyloseq)
 library(dplyr)
@@ -970,12 +951,12 @@ diag_helot <- plot_betareg_diagnostics(mod_list[["helotiales"]],  df_list[["helo
 diag_seba  <- plot_betareg_diagnostics(mod_list[["sebacinales"]], df_list[["sebacinales"]], "Sebacinales")
 
 ggsave(
-  filename = file.path(out_fig_dir, "Fig_S5_betareg_diagnostics_helotiales.png"),
+  filename = file.path(out_fig_dir, "Fig_S6_betareg_diagnostics_helotiales.png"),
   plot = diag_helot, width = 8.5, height = 6.5, dpi = 600
 )
 
 ggsave(
-  filename = file.path(out_fig_dir, "Fig_S6_betareg_diagnostics_sebacinales.png"),
+  filename = file.path(out_fig_dir, "Fig_S7_betareg_diagnostics_sebacinales.png"),
   plot = diag_seba, width = 8.5, height = 6.5, dpi = 600
 )
 
@@ -983,15 +964,17 @@ ggsave(
 
 ## Functional annotation with FUNGuild
 
-Functional guilds from root samples were assigned using FUNGuild based on the curated taxonomic strings exported from the phyloseq object. OTUs with a valid confidence ranking in the FUNGuild output were retained for downstream summaries. Guild labels were additionally collapsed into a primary-guild hierarchy (Ericoid mycorrhizal \> other mycorrhizal \> endophyte \> pathotroph \> saprotroph \> other) to simplify interpretation. Figure S7 summarizes mean guild-associated read abundance per sample across habitats.
+Functional guilds from root samples were assigned using FUNGuild based on the curated taxonomic strings exported from the phyloseq object. OTUs with a valid confidence ranking in the FUNGuild output were retained for downstream summaries. Guild labels were additionally collapsed into a primary-guild hierarchy (Ericoid mycorrhizal \> other mycorrhizal \> endophyte \> pathotroph \> saprotroph \> other) to simplify interpretation. Figure S8 summarizes mean guild-associated read abundance per sample across habitats.
 
-![](figures/Fig_S7_FunGuild.png)
+![](figures/Fig_S9_FunGuild.png)
 
-**Figure S7**: Mean relative read abundance per sample of fungal functional guilds across forest, subpáramo, and páramo habitats, based on FUNGuild annotations. Only root samples. *Code: see "FUNGuild functional annotation" below.*
+**Figure S8**: Mean relative read abundance per sample of fungal functional guilds across forest, subpáramo, and páramo habitats, based on FUNGuild annotations. Only root samples. *Code: see "FUNGuild functional annotation" below.*
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "FUNGuild functional annotation (external script)"
 
 # Functional guild assignment was performed using FUNGuild prior to figure generation.
 #
@@ -1005,18 +988,18 @@ Functional guilds from root samples were assigned using FUNGuild based on the cu
 #  - Table of guild assignments per taxon
 #  - Mean read abundances per sample and habitat
 #
-# Figure S7 was generated from these outputs and is included above as a PNG.
+# Figure S8 was generated from these outputs and is included above as a PNG.
 ```
 
 ## Generalized Linear Latent Variable Model (GLLVM)
 
 We modelled OTU counts using a generalized linear latent variable model (GLLVM; negative binomial distribution, log link), with habitat (forest, subpáramo, páramo) as a fixed effect, log library size as an offset, and random intercepts for site and individual plants (Unique_ID). One latent variable was included to account for residual correlation among taxa. The final model (log-likelihood = −37,616; AIC = 80,295) provided the best balance between fit and parsimony. It substantially outperformed earlier versions with nested random effects (AIC = 186,832), and attempts to increase the number of latent variables to two worsened performance (ΔAIC ≈ 12,700) and produced a singular information matrix, indicating over-parameterization. Simplifying the random-effects structure and filtering rare taxa also improved convergence and reduced overdispersion while retaining ecological signal.
 
-Model fit was evaluated using Dunn–Smyth residual diagnostics (Fig. S8). Habitat coefficients (β) were extracted for each OTU from the fixed-effects matrix. To obtain genus-level responses, OTUs were restricted to those assigned to a genus (excluding incertae sedis) and weighted by their total read abundance across samples. For each genus, we computed the abundance-weighted mean β for páramo and subpáramo relative to forest. Uncertainty was summarized using a weighted bootstrap (R = 500) resampling OTUs within genera with probabilities proportional to total abundance; 2.5–97.5% quantiles were used as 95% confidence intervals. These summaries were used to generate the heatmap and barplot shown in Figure 4. The full OTU-level coefficient table is provided in Data_S2_GLLVM_table.csv.
+Model fit was evaluated using Dunn–Smyth residual diagnostics (Fig. S9). Habitat coefficients (β) were extracted for each OTU from the fixed-effects matrix. To obtain genus-level responses, OTUs were restricted to those assigned to a genus (excluding incertae sedis) and weighted by their total read abundance across samples. For each genus, we computed the abundance-weighted mean β for páramo and subpáramo relative to forest. Uncertainty was summarized using a weighted bootstrap (R = 500) resampling OTUs within genera with probabilities proportional to total abundance; 2.5–97.5% quantiles were used as 95% confidence intervals. These summaries were used to generate the heatmap and barplot shown in Figure 4. The full OTU-level coefficient table is provided in Data_S2_GLLVM_table.csv.
 
-![](figures/Fig_S8_GLLVM_diagnostics.png)
+![](figures/Fig_S10_GLLVM_diagnostics.png)
 
-**Figure S8**: Diagnostic plots for the negative-binomial GLLVM (Dunn–Smyth residuals). *Code: see "GLLVM model fitting + coefficient summaries" below.*
+**Figure S9**: Diagnostic plots for the negative-binomial GLLVM (Dunn–Smyth residuals). *Code: see "GLLVM model fitting + coefficient summaries" below.*
 
 For transparency, we provide a short preview of the genus-level GLLVM summaries below. The complete OTU- and genus-level coefficient table is available as Data S2 (Data_S2_GLLVM_table.csv).
 
@@ -1033,22 +1016,22 @@ kable(
     "perc_enriched_paramo_w", "perc_enriched_subparamo_w"
   )],
   digits = 3,
-  col.names = c("Order", "Genus", "n OTUs", "w.beta paramo", "w.beta subparamo", "% enr. paramo", "% enr. subparamo"),
   caption = "Data S2 (preview). Selected columns from the GLLVM genus-level summary. The full table with all metrics is provided as a CSV file."
-) |>
-  kableExtra::kable_styling(latex_options = "scale_down", font_size = 7)
+)
 ```
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "GLLVM model fitting + coefficient summaries (executed on server)"
 
 # GLLVM analysis was executed on the server due to computational cost.
 # The complete workflow (data filtering, model fitting, diagnostics, and genus-level summaries) is provided in the repository:
 #   scripts/gllvm_analysis.R
 #
 # Key outputs saved:
-#   - figures/Fig_S8_GLLVM_diagnostics.png
+#   - figures/Fig_S9_GLLVM_diagnostics.png
 #   - tables/File_S2_GLLVM_table.csv
 #   - objects/fit_nb_2.rds  # fitted model object
 ```
@@ -1056,10 +1039,6 @@ kable(
 ## Diversity analyses with iNEXT3D
 
 We quantified habitat-associated patterns in taxonomic diversity (TD) and phylogenetic diversity (PD) using iNEXT3D and Hill numbers (q = 0, 1, 2). Diversity estimates were computed from incidence (presence/absence) matrices at the habitat level and evaluated under rarefaction/extrapolation with bootstrap confidence intervals (nboot = 500). Phylogenetic diversity was estimated as meanPD using a pruned phylogeny matched to the observed taxa. Diversity curves are presented in the main text (Fig. 4), while asymptotic summaries are provided here (Tables S11–S12).
-
-```{=latex}
-\clearpage
-```
 
 ```{r}
 #| echo: false
@@ -1071,10 +1050,11 @@ kable(
   tab_s11,
   digits = 3,
   caption = "Table S11. Taxonomic diversity (TD) summary from iNEXT3D across habitats (q = 0, 1, 2; nboot = 500). Observed and asymptotic estimates are reported with standard errors, 95% confidence intervals, and sample coverage at observed effort and at double effort."
-) |> kableExtra::kable_styling(latex_options = "scale_down")
+)
 ```
 
 ```{r}
+
 #| echo: false
 library(knitr)
 
@@ -1084,12 +1064,14 @@ kable(
   tab_s12,
   digits = 3,
   caption = "Table S12. Phylogenetic diversity (PD; meanPD) summary from iNEXT3D across habitats (q = 0, 1, 2; nboot = 500), including coverage and effective lineage estimates under rarefaction/extrapolation."
-) |> kableExtra::kable_styling(latex_options = "scale_down")
+)
 ```
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "iNEXT3D diversity analyses (executed on remote server)"
 
 
 
@@ -1288,7 +1270,7 @@ write.csv(
 
 ## Nearest Taxon Index (NTI) and Net Relatedness Index (NRI)
 
-Phylogenetic community structure was quantified using Net Relatedness Index (NRI; based on MPD) and Nearest Taxon Index (NTI; based on MNTD), calculated under a taxa-label null model with 999 randomizations using both abundance-weighted (aw) and presence–absence (pa) versions. Habitat-level summaries are reported as median (IQR) (Table S13). Habitat and site effects on abundance-weighted metrics were evaluated with linear models (habitat + site; Table S14). Model diagnostics for the NTI_aw model are available in Fig. S9.
+Phylogenetic community structure was quantified using Net Relatedness Index (NRI; based on MPD) and Nearest Taxon Index (NTI; based on MNTD), calculated under a taxa-label null model with 999 randomizations using both abundance-weighted (aw) and presence–absence (pa) versions. Habitat-level summaries are reported as median (IQR) (Table S13). Habitat and site effects on abundance-weighted metrics were evaluated with linear models (habitat + site; Table S14). Model diagnostics for the NTI_aw model are available in Fig. S10.
 
 ```{r}
 #| echo: false
@@ -1296,8 +1278,7 @@ library(knitr)
 
 tab_s13 <- read.csv("tables/Table_S13_NRI_NTI_median_IQR.csv")
 kable(tab_s13,
-      caption = "Table S13. Median (IQR) of NRI and NTI across habitats, calculated using abundance-weighted (aw) and presence–absence (pa) metrics. Positive values indicate phylogenetic clustering relative to null expectations.") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+      caption = "Table S13. Median (IQR) of NRI and NTI across habitats, calculated using abundance-weighted (aw) and presence–absence (pa) metrics. Positive values indicate phylogenetic clustering relative to null expectations.")
 ```
 
 ```{r}
@@ -1306,20 +1287,21 @@ library(knitr)
 
 tab_s14 <- read.csv("tables/Table_S14_NRI_NTI_ANOVA.csv")
 kable(tab_s14, digits = 4,
-      caption = "Table S14. ANOVA summaries for linear models of abundance-weighted NTI and NRI (habitat + site).") |>
-  kableExtra::kable_styling(latex_options = "scale_down")
+      caption = "Table S14. ANOVA summaries for linear models of abundance-weighted NTI and NRI (habitat + site).")
 ```
 
-![](figures/Fig_S9_NTI_aw_diagnostics.png)
+![](figures/Fig_S11_NTI_aw_diagnostics.png)
 
-**Figure S9**: Diagnostic plots for the NTI_aw linear model.
+**Figure S10**: Diagnostic plots for the NTI_aw linear model.
 
 ```{r}
 #| eval: false
 #| echo: true
+#| code-fold: true
+#| code-summary: "NTI/NRI computation + summaries (executed on remote server)"
 
 # Key outputs saved:
-#   - figures/Fig_S9_NTI_aw_diagnostics.png
+#   - figures/Fig_S10_NTI_aw_diagnostics.png
 #   - tables/Table_S13_NRI_NTI_median_IQR.csv
 #   - tables/Table_S14_NRI_NTI_ANOVA.csv
 
@@ -1427,7 +1409,7 @@ tab_s13 <- bind_rows(
 
 write.csv(tab_s13, file.path(out_tab_dir, "Table_S14_NRI_NTI_ANOVA.csv"), row.names = FALSE)
 
-## 10) Figure S9: diagnostics for NTI_aw model
+## 10) Figure S11: diagnostics for NTI_aw model
 diagdf <- data.frame(
   fitted = fitted(m_NTI_aw),
   resid  = resid(m_NTI_aw),
@@ -1463,7 +1445,7 @@ p4 <- ggplot(diagdf, aes(seq_along(hat), hat)) +
 panel <- (p1 | p2) / (p3 | p4) + plot_annotation(title = "NTI_aw model diagnostics")
 
 ggsave(
-  filename = file.path(out_fig_dir, "Fig_S9_NTI_aw_diagnostics.png"),
+  filename = file.path(out_fig_dir, "Fig_S10_NTI_aw_diagnostics.png"),
   plot = panel,
   width = 10, height = 7, dpi = 600, bg = "white"
 )
@@ -1475,6 +1457,6 @@ To provide environmental context for the elevational gradients sampled in this s
 
 The full soil dataset, including all measured variables, is provided as Table S15 and is archived in the repository as "Data_S3_soil.csv".
 
-![](figures/FigS10_soil.png)\
+![](figures/FigS12_soil.png)\
 \
-**Figure S10**: Correlation heatmap of bulk soil physicochemical variables measured at each sampling location (n = 12). Colors indicate Pearson correlation among soil variables and elevation.
+**Figure S11**: Correlation heatmap of bulk soil physicochemical variables measured at each sampling location (n = 12). Colors indicate Pearson correlation among soil variables and elevation.
