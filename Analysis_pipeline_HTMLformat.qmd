@@ -46,7 +46,7 @@ Root sampling followed standardized sterile procedures. Fine roots of Gaultheria
 **Table S1**: GPS coordinates, elevation, and vegetation type classification of the 12 sampling locations across four páramo regions. These sites span the forest–subpáramo–páramo gradient and were used for root and soil sampling.
 
 |             |                      |                  |                  |                   |               |
-|-------------|----------------------|------------------|------------------|-------------------|---------------|
+|------------|------------|------------|------------|------------|------------|
 | **Site ID** | **Site**             | **Altitude (m)** | **Latitude (N)** | **Longitude (W)** | **Ecosystem** |
 | NV_1        | Páramo La Nevera     | 3828             | 03º30’58.1”      | 076º03’05.4”      | Páramo        |
 | NV_2        | Páramo La Nevera     | 3550             | 03º31’37.7”      | 076º03’38.7”      | Subpáramo     |
@@ -68,7 +68,7 @@ This section provides supplementary details on sequencing read processing and qu
 **Table S2**: Median read numbers per PCR replicate for environmental samples (root and soil samples) and controls (blank extractions, positive, PCR blank, and tag-jump controls). The read counts are grouped at each stage of the DADA2 pipeline. Blank extraction controls (not containing any biological sample) were performed alongside real sample DNA extractions per each extraction batch. PCR blank controls contained all PCR reagents but no DNA template. Tag-jump controls are PCR reactions containing no primers and no DNA template, used to detect tag-jumping (index hopping). 
 
 |                               |               |              |                         |                     |                           |
-|-------------------------------|---------------|--------------|-------------------------|---------------------|---------------------------|
+|------------|------------|------------|------------|------------|------------|
 |                               | **Raw reads** | **Filtered** | **Merged - Non pooled** | **Merged - Pooled** | **Merged - Pseudopooled** |
 | **Root samples**              | 77,047        | 71,783       | 71,084                  | 70,343              | 71,242                    |
 | **Soil samples**              | 72,158        | 66,555       | 65,311                  | 65,498              | 65,385                    |
@@ -258,7 +258,7 @@ genus <- ps_filtered %>%
 
 ```
 
-# Community composition analyses
+## Community composition analyses
 
 This section provides detailed statistical analyses supporting the patterns of root-associated fungal community composition described in the main text. Several of these analyses form the basis of results reported in the main manuscript; here we document the full model specifications, test statistics, and complementary ordinations to ensure transparency and reproducibility.
 
@@ -485,7 +485,7 @@ write.csv(test_site,  file.path(out_dir, "Table_S6_betadisper_test_site.csv"), r
 
 ```
 
-## Centroid-based turnover model
+### Centroid-based turnover model
 
 To quantify the magnitude of community turnover across habitats while accounting for spatial structure, we calculated the Aitchison distance of each sample to its site-specific centroid and modelled turnover as a function of habitat, site, and their interaction. Habitat had a strong effect on turnover magnitude, whereas the habitat × site interaction was not significant, indicating consistent habitat-associated turnover across geographically isolated páramo regions (Table S7).
 
