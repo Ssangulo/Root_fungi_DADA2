@@ -2,7 +2,7 @@
 
 This repository contains the data, scripts, and analysis documents supporting the manuscript:
 
-> **[Manuscript title]** — *[Authors]* — *[Journal, Year]*
+> **Elevation filters root-associated fungal communities of Ericaceae in Andean páramo ecosystems** — *[Authors]* — *[Journal, Year]*
 
 ## Repository contents
 
@@ -14,7 +14,7 @@ Scripts to process Illumina ITS2 reads from *Gaultheria myrsinoides* roots sampl
 | File | Description |
 |------|-------------|
 | `Analysis_pipeline_HTMLformat.html` | **Main reproducibility document.** Self-contained HTML file with all statistical analyses, figures, and tables, including collapsible code blocks for all methods executed on the remote server. Open in any browser — no additional software required. |
-| `Analysis_pipeline_HTMLformat.qmd` | Quarto source file for the HTML document. Requires R and the packages listed in the setup chunk to render. |
+| `Analysis_pipeline_HTMLformat.qmd` | Quarto source file for the HTML document. Requires R to render. |
 | `Analysis_pipeline_PDF.qmd` | Quarto source file for the PDF appendix. Renders a clean, code-free version of the supplementary material for journal submission. |
 
 ### Data and outputs
