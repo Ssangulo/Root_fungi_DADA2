@@ -451,7 +451,7 @@ p_heat <- ggplot(heatmap_df,
     midpoint = 0,
     limits   = c(-35, 35),
     oob      = scales::squish,
-    name = expression(paste(beta, " (weighted mean log fold-change)"))
+    name = expression(paste(beta, " (weighted mean)"))
   ) +
   theme_minimal(base_size = 12) +
   theme(
@@ -471,6 +471,9 @@ ggsave(
   dpi = 900
 )
 
+# Save p_heat as RDS for loading in Quarto document
+dir.create("objects", showWarnings = FALSE, recursive = TRUE)
+saveRDS(p_heat, file = "objects/p_heat_gllvm.rds")
 
 
 #Making bar plot alongside heatmap with 95% CI 

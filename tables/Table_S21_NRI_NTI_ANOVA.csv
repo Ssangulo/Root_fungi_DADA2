@@ -1,0 +1,7 @@
+"Response","Predictor","df","F","p"
+"NTI_aw","habitat",2,0.510623758442441,0.602989600307588
+"NTI_aw","site",3,1.81638062581004,0.155128428931463
+"NTI_aw","Residuals",54,NA,NA
+"NRI_aw","habitat",2,1.27293967822544,0.288274039781964
+"NRI_aw","site",3,3.42061285087033,0.0235441260642898
+"NRI_aw","Residuals",54,NA,NA

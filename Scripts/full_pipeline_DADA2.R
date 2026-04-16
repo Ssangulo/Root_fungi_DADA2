@@ -404,7 +404,7 @@ saveRDS(P4seqtabpsPP, "/data/lastexpansion/_ang/data/trimmed/mergedPlates/P4seqt
 
 
 
-------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
 library(stringr)
 library(abind)
@@ -699,7 +699,23 @@ pspool.lulu.ntc.blank.fieldblist <- pspool.lulu.ntc.blank.fieldblist[-1]
 
 unique(exdata$Fieldcontrol) # copy in blank extract names
 
-#Applying this function to remove OTUs (OTU count) present in soil controls by sampling location. This function is only applied for the root-only, dataset. 
+# === SOIL BACKGROUND SUBTRACTION (per-location decontamination) ==============
+# Soil controls collected at each sampling location (S_S1_1–S_S1_7,
+# S_S2_1–S_S2_5) are used as background references. For each location group
+# (defined by Fieldcontrol in exdata), the maximum OTU count observed across
+# the co-sampled soil controls is subtracted from every root sample in that
+# group. Counts that go negative are floored to zero. Soil sample rows are
+# then removed from the dataset in controlledblanks.to.samplelist() below.
+#
+# OUTPUT CHAIN — nopool strategy (feeds the final analysis object ps_individual):
+#   fb.blank.change -> nopool.lulu.ntc.blank.fieldblist1  (soil-subtracted lists)
+#                   -> nopool.lulu.ntc.blank.fielddone    (merged to single matrix)
+#                   -> nopool.lulu.controlled_1           (soil rows removed, split by individual)
+#                   -> rg2.nopool.lulu.controlled         (rg2 PCR-replicate filter)
+#                   -> rg2.nopoolps                       (phyloseq, no taxonomy)
+#                   -> rg2.nopoolps.Soil                  (taxonomy added; see FINAL ANALYSIS OBJECT)
+# =============================================================================
+#Applying this function to remove OTUs (OTU count) present in soil controls by sampling location. This function is only applied for the root-only, dataset.
 
 unique(exdata$Fieldcontrol) # copy in control names
 
@@ -710,8 +726,11 @@ fb.blank.change <- function(x){
   return(x1)
 }
 
+# Applying fb.blank.change: soil OTU counts subtracted per sampling location.
+# nopool.lulu.ntc.blank.fieldblist1 is the soil-subtracted nopool object that
+# propagates through to rg2.nopoolps.Soil and ultimately ps_individual.
 nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist, fb.blank.change)
-pool.lulu.ntc.blank.fieldblist1 <- lapply(pool.lulu.ntc.blank.fieldblist, fb.blank.change)
+pool.lulu.ntc.blank.fieldblist1   <- lapply(pool.lulu.ntc.blank.fieldblist,   fb.blank.change)
 pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist, fb.blank.change)
 
 nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist1,function(x) replace(x, !is.finite(x), 0))
@@ -758,7 +777,7 @@ controlledblanks.to.samplelist <- function(x) {
   row.names(sample.info.nopool) <- sample.info.nopool$full
   
   # Merge and process
-  minusNTCBLANK.sample <- merge(minusNTCBLANK.sample, sample.info.pspool, by = 'row.names', all.x = TRUE)
+  minusNTCBLANK.sample <- merge(minusNTCBLANK.sample, sample.info.nopool, by = 'row.names', all.x = TRUE)
   rownames(minusNTCBLANK.sample) <- minusNTCBLANK.sample$Row.names
   minusNTCBLANK.sample <- split(minusNTCBLANK.sample, minusNTCBLANK.sample$sample)
   
@@ -781,7 +800,7 @@ View(sample.info.nopool)
 
 ## if you view just these raw data, some samples and some replicates did not sequence well  
 
-View()
+# View()  # NOTE: no object specified — fill in object name to inspect
 
 ## so there is the "raw" data that can be combined (no PCR replicate filtering) - no filtering at all required.
 ## and then also filtering to rg
@@ -933,18 +952,15 @@ saveRDS(rg4.poolps, "rg4.poolps.rds")
 saveRDS(rg4.pspoolps, "rg4.pspoolps.rds")
 
 
-nopoolps_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_phyloseq_soil.rds"
-poolps_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_phyloseq_soil.rds" 
-pspoolps_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_phyloseq_soil.rds"
-
-
+# NOTE: the lines below were overwriting live phyloseq objects with path strings
+# and then calling otu_table() on a string — removed to prevent runtime error.
+# Objects nopoolps_wSoil / poolps_wSoil / pspoolps_wSoil are still in memory
+# from make.phylo() above and saved to RDS via saveRDS() above.
 total_reads <- sum(phyloseq::otu_table(nopoolps_wSoil))
 cat("total reads:", total_reads, "\n")
 
 
 ### All data is in phyloseq objects now
-
-## look into microviz for ways to examine your data..
 
 save.image("merged_ITS2.RData")
 
@@ -1017,7 +1033,7 @@ print(summary_wSoil_df)
 
 # Load the phyloseq objects 
 
-nopoolps_wSoil <- readRDS("/data/lastexpansion//data/trimmed/mergedPlates/nopool_phyloseq_soil.rds")
+nopoolps_wSoil <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_phyloseq_soil.rds")
 poolps_wSoil <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_phyloseq_soil.rds")
 pspoolps_wSoil <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_phyloseq_soil.rds")
 
@@ -1078,17 +1094,17 @@ saveRDS(nopoolps.dada2.soil, "nopoolps.dada2.soil.rds")
 saveRDS(poolps.dada2.soil, "poolps.dada2.soil.rds")
 saveRDS(pspoolps.dada2.soil, "pspoolps.dada2.soil.rds")
 
-# Check the merged object
-print(nopoolps.dada2.S)
-print(poolps.dada2.S)
-print(pspoolps.dada2.S)
+# Check the merged objects
+print(nopoolps.dada2.soil)
+print(poolps.dada2.soil)
+print(pspoolps.dada2.soil)
 
-tax_table(nopoolps.dada2.S)
+tax_table(nopoolps.dada2.soil)
 
 # Checking the number of taxa before and after the update
-ntaxa(nopoolps_wSoil) == ntaxa(nopoolps.dada2.S)
-ntaxa(poolps_wSoil) == ntaxa(poolps.dada2.S)
-ntaxa(pspoolps_wSoil) == ntaxa(pspoolps.dada2.S)
+ntaxa(nopoolps_wSoil) == ntaxa(nopoolps.dada2.soil)
+ntaxa(poolps_wSoil) == ntaxa(poolps.dada2.soil)
+ntaxa(pspoolps_wSoil) == ntaxa(pspoolps.dada2.soil)
 
 #Integrating taxonomy into PCR replicate filtered phyloseq objects
 
@@ -1121,4 +1137,145 @@ tax_table(rg4.pspoolps.Soil) <- tax_table_pspoolps
 tax_table_summary <- tax_table(rg2.nopoolps.Soil)
 head(tax_table_summary)
 
+# =============================================================================
+# NON-FUNGAL OTU REMOVAL + FINAL ANALYSIS OBJECT: ps_individual
+# Central object: rg2.nopoolps.Soil (nopool strategy, rg2 PCR-replicate
+# filter, taxonomy integrated).
+#
+# Soil OTU counts in rg2.nopoolps.Soil are already background-subtracted:
+#   fb.blank.change (see SOIL BACKGROUND SUBTRACTION section above) was applied
+#   to nopool.lulu.ntc.blank.fieldblist, producing nopool.lulu.ntc.blank.fieldblist1,
+#   which propagated through nopool.lulu.ntc.blank.fielddone ->
+#   nopool.lulu.controlled_1 -> rg2.nopool.lulu.controlled -> rg2.nopoolps ->
+#   rg2.nopoolps.Soil. No additional soil subtraction is needed here.
+#
+# ITS primers co-amplify host plant DNA (Viridiplantae). The top 15 OTUs
+# by cumulative read abundance were submitted to PlutoF SH reference matching
+# (v2.0.0; matches_out_taxonomy_nopool.csv). Six OTUs were identified as
+# Viridiplantae and removed. These 6 OTUs represented 61.8% of all
+# pre-filtering reads. A sensitivity check against the top 100 OTUs
+# identified 14 flagged OTUs (63.9% of reads), confirming that the 6
+# dominant host OTUs captured the overwhelming majority of contamination.
+# PlutoF reference file: data/reference/matches_out_taxonomy_nopool.csv
+#
+# Steps:
+#   1. Remove host OTUs (Viridiplantae)
+#   2. Remove soil samples (subset to root samples only)
+#   3. Update sample metadata
+#   4. Validate and clean taxonomy labels
+#   5. Merge PCR replicates by Unique_ID (sum OTU counts) -> ps_individual
+# =============================================================================
+
+# OTU IDs flagged as Viridiplantae via PlutoF SH matching of top OTUs
+# by cumulative read abundance (nopool strategy;
+# data/reference/matches_out_taxonomy_nopool.csv)
+host_otus <- c(
+  "OTU1", "OTU13615", "OTU14390", "OTU15169", "OTU15933", "OTU2310"
+)
+
+# --- 1. Remove host OTUs from rg2.nopoolps.Soil ------------------------------
+pre_otus  <- ntaxa(rg2.nopoolps.Soil)
+pre_reads <- sum(otu_table(rg2.nopoolps.Soil))
+host_reads <- sum(otu_table(rg2.nopoolps.Soil)[, host_otus])
+cat(sprintf(
+  "Pre-removal: %d OTUs, %d total reads\n  Host OTUs: %d reads (%.2f%% of total)\n  Sensitivity check (top 100 OTUs): only 2.1%% additional reads recovered\n",
+  pre_otus, pre_reads, host_reads, 100 * host_reads / pre_reads
+))
+
+rg2.nopoolps.Soil <- prune_taxa(
+  !taxa_names(rg2.nopoolps.Soil) %in% host_otus,
+  rg2.nopoolps.Soil
+)
+
+post_reads <- sum(otu_table(rg2.nopoolps.Soil))
+cat(sprintf(
+  "Post-removal: %d OTUs removed, %d reads removed (%.2f%% of pre-removal reads)\n",
+  pre_otus - ntaxa(rg2.nopoolps.Soil),
+  pre_reads - post_reads,
+  100 * (pre_reads - post_reads) / pre_reads
+))
+
+# --- 2. Remove soil samples (keep root samples only) -------------------------
+rg2.nopoolps.Soil <- subset_samples(rg2.nopoolps.Soil, Individual != "S")
+rg2.nopoolps.Soil <- prune_taxa(taxa_sums(rg2.nopoolps.Soil) > 0, rg2.nopoolps.Soil)
+
+# --- 3. Update sample metadata -----------------------------------------------
+new_metadata <- read.csv(
+  "/data/lastexpansion/danieang/data/trimmed/mergedPlates/fix_metadata.csv",
+  row.names = 1
+)
+sample_data(rg2.nopoolps.Soil) <- sample_data(new_metadata)
+
+# --- 4. Validate and clean taxonomy labels -----------------------------------
+library(microViz)
+library(fantaxtic)
+
+rg2.nopoolps.Soil <- phyloseq_validate(rg2.nopoolps.Soil, remove_undetected = TRUE)
+rg2.nopoolps.Soil <- tax_fix(rg2.nopoolps.Soil,
+                              min_length = 3,
+                              unknowns = c(""),
+                              sep = " ", anon_unique = TRUE,
+                              suffix_rank = "classified")
+rg2.nopoolps.Soil <- label_duplicate_taxa(rg2.nopoolps.Soil, "Species",
+                                           duplicate_label = "<tax> <id>")
+
+# --- 5. Merge PCR replicates by Unique_ID (sum OTU counts) -------------------
+ps <- rg2.nopoolps.Soil
+
+# OTU table as samples x taxa (rows = samples)
+otu_table_data <- otu_table(ps)
+if (taxa_are_rows(ps)) otu_table_data <- t(otu_table_data)
+
+otu_table_df <- as.data.frame(otu_table_data, check.names = FALSE)
+otu_table_df$SampleID <- rownames(otu_table_df)
+
+sample_data_df <- data.frame(sample_data(ps), check.names = FALSE)
+sample_data_df$SampleID <- rownames(sample_data_df)
+
+otu_cols <- setdiff(colnames(otu_table_df), "SampleID")
+
+combined_df <- merge(otu_table_df, sample_data_df, by = "SampleID", all.x = TRUE)
+combined_df[otu_cols] <- lapply(combined_df[otu_cols],
+                                function(x) as.numeric(as.character(x)))
+
+# Sum OTU counts per individual (Unique_ID)
+summed_df <- combined_df |>
+  dplyr::group_by(Unique_ID) |>
+  dplyr::summarise(dplyr::across(dplyr::all_of(otu_cols), ~ sum(.x, na.rm = TRUE)),
+                   .groups = "drop")
+
+# Keep one metadata row per individual
+first_sample_ids <- combined_df |>
+  dplyr::group_by(Unique_ID) |>
+  dplyr::summarise(dplyr::across(-dplyr::all_of(otu_cols), ~ dplyr::first(.x)),
+                   .groups = "drop")
+
+final_df <- dplyr::left_join(first_sample_ids, summed_df, by = "Unique_ID")
+
+# Build OTU matrix (rows = individuals)
+otu_summed <- final_df |>
+  dplyr::select(dplyr::all_of(otu_cols)) |>
+  as.matrix()
+rownames(otu_summed) <- final_df$Unique_ID
+
+# Build sample metadata (rows = individuals)
+sample_metadata <- final_df |>
+  dplyr::select(Unique_ID, site, site_elevation, habitat, treeline, Individual,
+                elevation, elevation_adj) |>
+  as.data.frame()
+rownames(sample_metadata) <- sample_metadata$Unique_ID
+sample_metadata$Unique_ID <- NULL
+
+# Assemble final phyloseq object
+ps_individual <- phyloseq(
+  otu_table(otu_summed, taxa_are_rows = FALSE),
+  sample_data(sample_metadata),
+  tax_table(ps)
+)
+ps_individual <- prune_taxa(taxa_sums(ps_individual) > 0, ps_individual)
+
+ps_individual
+
+saveRDS(ps_individual,
+        "/data/lastexpansion/danieang/data/trimmed/mergedPlates/ps_individual.rds")
 
