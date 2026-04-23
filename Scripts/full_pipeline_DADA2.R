@@ -713,7 +713,7 @@ unique(exdata$Fieldcontrol) # copy in blank extract names
 #                   -> nopool.lulu.controlled_1           (soil rows removed, split by individual)
 #                   -> rg2.nopool.lulu.controlled         (rg2 PCR-replicate filter)
 #                   -> rg2.nopoolps                       (phyloseq, no taxonomy)
-#                   -> rg2.nopoolps.Soil                  (taxonomy added; see FINAL ANALYSIS OBJECT)
+#                   -> rg2.nopoolps                  (taxonomy added; see FINAL ANALYSIS OBJECT)
 # =============================================================================
 #Applying this function to remove OTUs (OTU count) present in soil controls by sampling location. This function is only applied for the root-only, dataset.
 
@@ -728,7 +728,7 @@ fb.blank.change <- function(x){
 
 # Applying fb.blank.change: soil OTU counts subtracted per sampling location.
 # nopool.lulu.ntc.blank.fieldblist1 is the soil-subtracted nopool object that
-# propagates through to rg2.nopoolps.Soil and ultimately ps_individual.
+# propagates through to rg2.nopoolps and ultimately ps_individual.
 nopool.lulu.ntc.blank.fieldblist1 <- lapply(nopool.lulu.ntc.blank.fieldblist, fb.blank.change)
 pool.lulu.ntc.blank.fieldblist1   <- lapply(pool.lulu.ntc.blank.fieldblist,   fb.blank.change)
 pspool.lulu.ntc.blank.fieldblist1 <- lapply(pspool.lulu.ntc.blank.fieldblist, fb.blank.change)
@@ -807,10 +807,9 @@ View(sample.info.nopool)
 
 # Making 4 types of phyloseq objects based on OTUs presence in PCR replicates:
 # Raw data
-# Raw data without soil sample's sequences -> see script 3_nosoil_phyloseq
-# OTU dropped if only in single PCR replicate (i.e. OTU in at least 2/4 replicated) w/soil samples
-# OTU dropped if only in two or fewer PCR replicates (i.e. OTU in at least 3/4 replicated) w/soil samples
-# Only OTUs in all four PCR replicates w/soil samples
+# OTU dropped if only in single PCR replicate (i.e. OTU in at least 2/4 replicated) 
+# OTU dropped if only in two or fewer PCR replicates (i.e. OTU in at least 3/4 replicated) 
+# Only OTUs in all four PCR replicates 
 
 ## Raw data including soil sample's sequences 
 nopool.lulu.controlled_1
@@ -912,22 +911,22 @@ make.phylo <- function (x, z, k){ # x = OTU data to this point, z = sample data,
 
 
 ## making phyoseq data from raw data w/ soil samples
-nopoolps_wSoil <- make.phylo(nopool.lulu.controlled_1 , exdata, nopoolseqs)
-poolps_wSoil <- make.phylo(pool.lulu.controlled_1 , exdata, poolseqs)
-pspoolps_wSoil <- make.phylo(pspool.lulu.controlled_1 , exdata, pspoolseqs)
+nopoolps <- make.phylo(nopool.lulu.controlled_1 , exdata, nopoolseqs)
+poolps <- make.phylo(pool.lulu.controlled_1 , exdata, poolseqs)
+pspoolps <- make.phylo(pspool.lulu.controlled_1 , exdata, pspoolseqs)
 
 
-## making phyloseq data from rg2 (OTU in at least 2 replicates data) w/soil
+## making phyloseq data from rg2 (OTU in at least 2 replicates data) 
 rg2.nopoolps <- make.phylo(rg2.nopool.lulu.controlled , exdata, nopoolseqs)
 rg2.poolps <- make.phylo(rg2.pool.lulu.controlled , exdata, poolseqs)
 rg2.pspoolps <- make.phylo(rg2.pspool.lulu.controlled , exdata, pspoolseqs)
 
-## making phyloseq data from rg3 (OTU in at least 3 replicates data) w/soil
+## making phyloseq data from rg3 (OTU in at least 3 replicates data) 
 rg3.nopoolps <- make.phylo(rg3.nopool.lulu.controlled , exdata, nopoolseqs)
 rg3.poolps <- make.phylo(rg3.pool.lulu.controlled , exdata, poolseqs)
 rg3.pspoolps <- make.phylo(rg3.pspool.lulu.controlled , exdata, pspoolseqs)
 
-## making phyloseq data from rg4 (OTU in at least 4 replicates data) w/soil
+## making phyloseq data from rg4 (OTU in at least 4 replicates data) 
 rg4.nopoolps <- make.phylo(rg4.nopool.lulu.controlled , exdata, nopoolseqs)
 rg4.poolps <- make.phylo(rg4.pool.lulu.controlled , exdata, poolseqs)
 rg4.pspoolps <- make.phylo(rg4.pspool.lulu.controlled , exdata, pspoolseqs)
@@ -935,9 +934,9 @@ rg4.pspoolps <- make.phylo(rg4.pspool.lulu.controlled , exdata, pspoolseqs)
 
 
 
-saveRDS(nopoolps_wSoil, "nopool_phyloseq_soil.rds")
-saveRDS(poolps_wSoil, "pool_phyloseq_soil.rds")
-saveRDS(pspoolps_wSoil, "pspool_phyloseq_soil.rds")
+saveRDS(nopoolps, "nopool_phyloseq_soil.rds")
+saveRDS(poolps, "pool_phyloseq_soil.rds")
+saveRDS(pspoolps, "pspool_phyloseq_soil.rds")
 
 saveRDS(rg2.nopoolps, "rg2.nopoolps.rds")
 saveRDS(rg2.poolps, "rg2.poolps.rds")
@@ -952,14 +951,6 @@ saveRDS(rg4.poolps, "rg4.poolps.rds")
 saveRDS(rg4.pspoolps, "rg4.pspoolps.rds")
 
 
-# NOTE: the lines below were overwriting live phyloseq objects with path strings
-# and then calling otu_table() on a string — removed to prevent runtime error.
-# Objects nopoolps_wSoil / poolps_wSoil / pspoolps_wSoil are still in memory
-# from make.phylo() above and saved to RDS via saveRDS() above.
-total_reads <- sum(phyloseq::otu_table(nopoolps_wSoil))
-cat("total reads:", total_reads, "\n")
-
-
 ### All data is in phyloseq objects now
 
 save.image("merged_ITS2.RData")
@@ -972,29 +963,29 @@ save.image("merged_ITS2.RData")
 unite <- "/data/lastexpansion/_ang/data/database/UNITE_small.fasta"
 
 # Path to curated sequences FASTA file
-nopool_fasta_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_wSoil.fasta"
-pool_fasta_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_wSoil.fasta"
-pspool_fasta_wSoil <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_wSoil.fasta"
+nopool_fasta <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_wSoil.fasta"
+pool_fasta <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_wSoil.fasta"
+pspool_fasta <- "/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_wSoil.fasta"
 
 library(Biostrings)
 
 # Reading sequences from FASTA file
-nopool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_wSoil.fasta")
-pool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_wSoil.fasta")
-pspool_fasta_wSoil <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_wSoil.fasta")
+nopool_fasta <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_wSoil.fasta")
+pool_fasta <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_wSoil.fasta")
+pspool_fasta <- readDNAStringSet("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_wSoil.fasta")
 
 
-sequence_lengths <- nchar(getSequences(nopool_fasta_wSoil))
+sequence_lengths <- nchar(getSequences(nopool_fasta))
 summary(sequence_lengths)
 
 # Assign taxonomy to With/soil dataset
-taxa_nopool_wSoil_80 <- assignTaxonomy(nopool_fasta_wSoil, unite, multithread=50, tryRC=TRUE, minBoot=80)
-taxa_pool_wSoil_80 <- assignTaxonomy(pool_fasta_wSoil, unite, multithread=50, tryRC=TRUE, minBoot=80)
-taxa_pspool_wSoil_80 <- assignTaxonomy(pspool_fasta_wSoil, unite, multithread=50, tryRC=TRUE, minBoot=80)
+taxa_nopool_80 <- assignTaxonomy(nopool_fasta, unite, multithread=50, tryRC=TRUE, minBoot=80)
+taxa_pool_80 <- assignTaxonomy(pool_fasta, unite, multithread=50, tryRC=TRUE, minBoot=80)
+taxa_pspool_80 <- assignTaxonomy(pspool_fasta, unite, multithread=50, tryRC=TRUE, minBoot=80)
 
-taxa_nopool_wSoil_60 <- assignTaxonomy(nopool_fasta_wSoil, unite, multithread=50, tryRC=TRUE, minBoot=60)
-taxa_pool_wSoil_60 <- assignTaxonomy(pool_fasta_wSoil, unite, multithread=50, tryRC=TRUE, minBoot=60)
-taxa_pspool_wSoil_60 <- assignTaxonomy(pspool_fasta_wSoil, unite, multithread=50, tryRC=TRUE, minBoot=60)
+taxa_nopool_60 <- assignTaxonomy(nopool_fasta, unite, multithread=50, tryRC=TRUE, minBoot=60)
+taxa_pool_60 <- assignTaxonomy(pool_fasta, unite, multithread=50, tryRC=TRUE, minBoot=60)
+taxa_pspool_60 <- assignTaxonomy(pspool_fasta, unite, multithread=50, tryRC=TRUE, minBoot=60)
 
 
 save.image(file = "dada2_taxa.RData")
@@ -1006,36 +997,36 @@ taxa_summary <- function(taxa) {
 }
 
 # Summarize assignments for With/soil dataset at minBoot = 80
-summary_nopool_wSoil_80 <- taxa_summary(taxa_nopool_wSoil_80)
-summary_pool_wSoil_80 <- taxa_summary(taxa_pool_wSoil_80)
-summary_pspool_wSoil_80 <- taxa_summary(taxa_pspool_wSoil_80)
+summary_nopool_80 <- taxa_summary(taxa_nopool_80)
+summary_pool_80 <- taxa_summary(taxa_pool_80)
+summary_pspool_80 <- taxa_summary(taxa_pspool_80)
 
 # Summarize assignments for With/soil dataset at minBoot = 60
-summary_nopool_wSoil_60 <- taxa_summary(taxa_nopool_wSoil_60)
-summary_pool_wSoil_60 <- taxa_summary(taxa_pool_wSoil_60)
-summary_pspool_wSoil_60 <- taxa_summary(taxa_pspool_wSoil_60)
+summary_nopool_60 <- taxa_summary(taxa_nopool_60)
+summary_pool_60 <- taxa_summary(taxa_pool_60)
+summary_pspool_60 <- taxa_summary(taxa_pspool_60)
 
 # Combine results for With/soil dataset into a data frame
-summary_wSoil_df <- data.frame(
-  Rank = colnames(taxa_nopool_wSoil_80),
-  Nopool_80 = summary_nopool_wSoil_80,
-  Pool_80 = summary_pool_wSoil_80,
-  PsPool_80 = summary_pspool_wSoil_80,
-  Nopool_60 = summary_nopool_wSoil_60,
-  Pool_60 = summary_pool_wSoil_60,
-  PsPool_60 = summary_pspool_wSoil_60
+summary_df <- data.frame(
+  Rank = colnames(taxa_nopool_80),
+  Nopool_80 = summary_nopool_80,
+  Pool_80 = summary_pool_80,
+  PsPool_80 = summary_pspool_80,
+  Nopool_60 = summary_nopool_60,
+  Pool_60 = summary_pool_60,
+  PsPool_60 = summary_pspool_60
 )
 
-print(summary_wSoil_df)
+print(summary_df)
 
 #Now I will proceed to add taxonomic information into phyloseq objects
 
 
 # Load the phyloseq objects 
 
-nopoolps_wSoil <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_phyloseq_soil.rds")
-poolps_wSoil <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_phyloseq_soil.rds")
-pspoolps_wSoil <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_phyloseq_soil.rds")
+nopoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/nopool_phyloseq_soil.rds")
+poolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pool_phyloseq_soil.rds")
+pspoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/pspool_phyloseq_soil.rds")
 
 rg2.nopoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg2.nopoolps.rds")
 rg2.poolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg2.poolps.rds")
@@ -1050,19 +1041,19 @@ rg4.poolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg4.po
 rg4.pspoolps <- readRDS("/data/lastexpansion/_ang/data/trimmed/mergedPlates/rg4.pspoolps.rds")
 
 #Convert taxonomy table into phyloseq compatible format (matrix)
-tax_table_nopoolps <- tax_table(taxa_nopool_wSoil_80)
-tax_table_poolps <- tax_table(taxa_pool_wSoil_80)
-tax_table_pspoolps <- tax_table(taxa_pspool_wSoil_80)
+tax_table_nopoolps <- tax_table(taxa_nopool_80)
+tax_table_poolps <- tax_table(taxa_pool_80)
+tax_table_pspoolps <- tax_table(taxa_pspool_80)
 
 # Check if the taxa IDs match between OTU table and taxonomy table
-all(taxa_names(nopoolps_wSoil) == rownames(tax_table_nopoolps))
-all(taxa_names(poolps_wSoil) == rownames(tax_table_poolps))
-all(taxa_names(pspoolps_wSoil) == rownames(tax_table_pspoolps))
+all(taxa_names(nopoolps) == rownames(tax_table_nopoolps))
+all(taxa_names(poolps) == rownames(tax_table_poolps))
+all(taxa_names(pspoolps) == rownames(tax_table_pspoolps))
 
 #Taxa names do not match between phyloseq objects and taxonomy tables... 
 
 # Sanity checks for consistent OTU names
-head(taxa_names(nopoolps_wSoil), 2)
+head(taxa_names(nopoolps), 2)
 head(taxa_names(tax_table_nopoolps), 2)
 
 # Extract the sequences from tax_table_nopoolps
@@ -1071,9 +1062,9 @@ seqs_tax_pool <- rownames(tax_table_poolps)
 seqs_tax_pspool <- rownames(tax_table_pspoolps)
 
 # Create a mapping between sequences and OTU identifiers
-seq_to_otu_nopool <- setNames(taxa_names(nopoolps_wSoil), seqs_tax_nopool)
-seq_to_otu_pool <- setNames(taxa_names(poolps_wSoil), seqs_tax_pool)
-seq_to_otu_pspool <- setNames(taxa_names(pspoolps_wSoil), seqs_tax_pspool)
+seq_to_otu_nopool <- setNames(taxa_names(nopoolps), seqs_tax_nopool)
+seq_to_otu_pool <- setNames(taxa_names(poolps), seqs_tax_pool)
+seq_to_otu_pspool <- setNames(taxa_names(pspoolps), seqs_tax_pspool)
 
 # Rename the rows of tax_table_nopoolps using this mapping
 rownames(tax_table_nopoolps) <- seq_to_otu_nopool[rownames(tax_table_nopoolps)]
@@ -1081,73 +1072,73 @@ rownames(tax_table_poolps) <- seq_to_otu_pool[rownames(tax_table_poolps)]
 rownames(tax_table_pspoolps) <- seq_to_otu_pspool[rownames(tax_table_pspoolps)]
 
 # Now checking that the names match
-all(rownames(tax_table_nopoolps) == taxa_names(nopoolps_wSoil))
-all(rownames(tax_table_poolps) == taxa_names(poolps_wSoil))
-all(rownames(tax_table_pspoolps) == taxa_names(pspoolps_wSoil))
+all(rownames(tax_table_nopoolps) == taxa_names(nopoolps))
+all(rownames(tax_table_poolps) == taxa_names(poolps))
+all(rownames(tax_table_pspoolps) == taxa_names(pspoolps))
 
 # Combining the taxonomy with existing phyloseq object
-nopoolps.dada2.soil <- merge_phyloseq(nopoolps_wSoil, tax_table_nopoolps)
-poolps.dada2.soil <- merge_phyloseq(poolps_wSoil, tax_table_poolps)
-pspoolps.dada2.soil <- merge_phyloseq(pspoolps_wSoil, tax_table_pspoolps)
+nopoolps.dada2 <- merge_phyloseq(nopoolps, tax_table_nopoolps)
+poolps.dada2 <- merge_phyloseq(poolps, tax_table_poolps)
+pspoolps.dada2 <- merge_phyloseq(pspoolps, tax_table_pspoolps)
 
-saveRDS(nopoolps.dada2.soil, "nopoolps.dada2.soil.rds")
-saveRDS(poolps.dada2.soil, "poolps.dada2.soil.rds")
-saveRDS(pspoolps.dada2.soil, "pspoolps.dada2.soil.rds")
+saveRDS(nopoolps.dada2, "nopoolps.dada2.rds")
+saveRDS(poolps.dada2, "poolps.dada2.rds")
+saveRDS(pspoolps.dada2, "pspoolps.dada2.rds")
 
 # Check the merged objects
-print(nopoolps.dada2.soil)
-print(poolps.dada2.soil)
-print(pspoolps.dada2.soil)
+print(nopoolps.dada2)
+print(poolps.dada2)
+print(pspoolps.dada2)
 
-tax_table(nopoolps.dada2.soil)
+tax_table(nopoolps.dada2)
 
 # Checking the number of taxa before and after the update
-ntaxa(nopoolps_wSoil) == ntaxa(nopoolps.dada2.soil)
-ntaxa(poolps_wSoil) == ntaxa(poolps.dada2.soil)
-ntaxa(pspoolps_wSoil) == ntaxa(pspoolps.dada2.soil)
+ntaxa(nopoolps) == ntaxa(nopoolps.dada2)
+ntaxa(poolps) == ntaxa(poolps.dada2)
+ntaxa(pspoolps) == ntaxa(pspoolps.dada2)
 
 #Integrating taxonomy into PCR replicate filtered phyloseq objects
 
 # Integrate taxonomy tables into phyloseq objects
-rg2.nopoolps.Soil <- rg2.nopoolps
-rg2.poolps.Soil <- rg2.poolps
-rg2.pspoolps.Soil <- rg2.pspoolps
+rg2.nopoolps <- rg2.nopoolps
+rg2.poolps <- rg2.poolps
+rg2.pspoolps <- rg2.pspoolps
 
-rg3.nopoolps.Soil <- rg3.nopoolps
-rg3.poolps.Soil <- rg3.poolps
-rg3.pspoolps.Soil <- rg3.pspoolps
+rg3.nopoolps <- rg3.nopoolps
+rg3.poolps <- rg3.poolps
+rg3.pspoolps <- rg3.pspoolps
 
-rg4.nopoolps.Soil <- rg4.nopoolps
-rg4.poolps.Soil <- rg4.poolps
-rg4.pspoolps.Soil <- rg4.pspoolps
+rg4.nopoolps <- rg4.nopoolps
+rg4.poolps <- rg4.poolps
+rg4.pspoolps <- rg4.pspoolps
 
-tax_table(rg2.nopoolps.Soil) <- tax_table_nopoolps
-tax_table(rg2.poolps.Soil) <- tax_table_poolps
-tax_table(rg2.pspoolps.Soil) <- tax_table_pspoolps
+tax_table(rg2.nopoolps) <- tax_table_nopoolps
+tax_table(rg2.poolps) <- tax_table_poolps
+tax_table(rg2.pspoolps) <- tax_table_pspoolps
 
-tax_table(rg3.nopoolps.Soil) <- tax_table_nopoolps
-tax_table(rg3.poolps.Soil) <- tax_table_poolps
-tax_table(rg3.pspoolps.Soil) <- tax_table_pspoolps
+tax_table(rg3.nopoolps) <- tax_table_nopoolps
+tax_table(rg3.poolps) <- tax_table_poolps
+tax_table(rg3.pspoolps) <- tax_table_pspoolps
 
-tax_table(rg4.nopoolps.Soil) <- tax_table_nopoolps
-tax_table(rg4.poolps.Soil) <- tax_table_poolps
-tax_table(rg4.pspoolps.Soil) <- tax_table_pspoolps
+tax_table(rg4.nopoolps) <- tax_table_nopoolps
+tax_table(rg4.poolps) <- tax_table_poolps
+tax_table(rg4.pspoolps) <- tax_table_pspoolps
 
 
-tax_table_summary <- tax_table(rg2.nopoolps.Soil)
+tax_table_summary <- tax_table(rg2.nopoolps)
 head(tax_table_summary)
 
 # =============================================================================
 # NON-FUNGAL OTU REMOVAL + FINAL ANALYSIS OBJECT: ps_individual
-# Central object: rg2.nopoolps.Soil (nopool strategy, rg2 PCR-replicate
+# Central object: rg2.nopoolps (nopool strategy, rg2 PCR-replicate
 # filter, taxonomy integrated).
 #
-# Soil OTU counts in rg2.nopoolps.Soil are already background-subtracted:
+# Soil OTU counts in rg2.nopoolps are already background-subtracted:
 #   fb.blank.change (see SOIL BACKGROUND SUBTRACTION section above) was applied
 #   to nopool.lulu.ntc.blank.fieldblist, producing nopool.lulu.ntc.blank.fieldblist1,
 #   which propagated through nopool.lulu.ntc.blank.fielddone ->
 #   nopool.lulu.controlled_1 -> rg2.nopool.lulu.controlled -> rg2.nopoolps ->
-#   rg2.nopoolps.Soil. No additional soil subtraction is needed here.
+#   rg2.nopoolps. No additional soil subtraction is needed here.
 #
 # ITS primers co-amplify host plant DNA (Viridiplantae). The top 15 OTUs
 # by cumulative read abundance were submitted to PlutoF SH reference matching
@@ -1173,54 +1164,54 @@ host_otus <- c(
   "OTU1", "OTU13615", "OTU14390", "OTU15169", "OTU15933", "OTU2310"
 )
 
-# --- 1. Remove host OTUs from rg2.nopoolps.Soil ------------------------------
-pre_otus  <- ntaxa(rg2.nopoolps.Soil)
-pre_reads <- sum(otu_table(rg2.nopoolps.Soil))
-host_reads <- sum(otu_table(rg2.nopoolps.Soil)[, host_otus])
+# --- 1. Remove host OTUs from rg2.nopoolps ------------------------------
+pre_otus  <- ntaxa(rg2.nopoolps)
+pre_reads <- sum(otu_table(rg2.nopoolps))
+host_reads <- sum(otu_table(rg2.nopoolps)[, host_otus])
 cat(sprintf(
   "Pre-removal: %d OTUs, %d total reads\n  Host OTUs: %d reads (%.2f%% of total)\n  Sensitivity check (top 100 OTUs): only 2.1%% additional reads recovered\n",
   pre_otus, pre_reads, host_reads, 100 * host_reads / pre_reads
 ))
 
-rg2.nopoolps.Soil <- prune_taxa(
-  !taxa_names(rg2.nopoolps.Soil) %in% host_otus,
-  rg2.nopoolps.Soil
+rg2.nopoolps <- prune_taxa(
+  !taxa_names(rg2.nopoolps) %in% host_otus,
+  rg2.nopoolps
 )
 
-post_reads <- sum(otu_table(rg2.nopoolps.Soil))
+post_reads <- sum(otu_table(rg2.nopoolps))
 cat(sprintf(
   "Post-removal: %d OTUs removed, %d reads removed (%.2f%% of pre-removal reads)\n",
-  pre_otus - ntaxa(rg2.nopoolps.Soil),
+  pre_otus - ntaxa(rg2.nopoolps),
   pre_reads - post_reads,
   100 * (pre_reads - post_reads) / pre_reads
 ))
 
 # --- 2. Remove soil samples (keep root samples only) -------------------------
-rg2.nopoolps.Soil <- subset_samples(rg2.nopoolps.Soil, Individual != "S")
-rg2.nopoolps.Soil <- prune_taxa(taxa_sums(rg2.nopoolps.Soil) > 0, rg2.nopoolps.Soil)
+rg2.nopoolps <- subset_samples(rg2.nopoolps, Individual != "S")
+rg2.nopoolps <- prune_taxa(taxa_sums(rg2.nopoolps) > 0, rg2.nopoolps)
 
 # --- 3. Update sample metadata -----------------------------------------------
 new_metadata <- read.csv(
   "/data/lastexpansion/danieang/data/trimmed/mergedPlates/fix_metadata.csv",
   row.names = 1
 )
-sample_data(rg2.nopoolps.Soil) <- sample_data(new_metadata)
+sample_data(rg2.nopoolps) <- sample_data(new_metadata)
 
 # --- 4. Validate and clean taxonomy labels -----------------------------------
 library(microViz)
 library(fantaxtic)
 
-rg2.nopoolps.Soil <- phyloseq_validate(rg2.nopoolps.Soil, remove_undetected = TRUE)
-rg2.nopoolps.Soil <- tax_fix(rg2.nopoolps.Soil,
+rg2.nopoolps <- phyloseq_validate(rg2.nopoolps, remove_undetected = TRUE)
+rg2.nopoolps <- tax_fix(rg2.nopoolps,
                               min_length = 3,
                               unknowns = c(""),
                               sep = " ", anon_unique = TRUE,
                               suffix_rank = "classified")
-rg2.nopoolps.Soil <- label_duplicate_taxa(rg2.nopoolps.Soil, "Species",
+rg2.nopoolps <- label_duplicate_taxa(rg2.nopoolps, "Species",
                                            duplicate_label = "<tax> <id>")
 
-# --- 5. Merge PCR replicates by Unique_ID (sum OTU counts) -------------------
-ps <- rg2.nopoolps.Soil
+# --- 5. Merge two root samples from same individual by Unique_ID (sum OTU counts) -------------------
+ps <- rg2.nopoolps
 
 # OTU table as samples x taxa (rows = samples)
 otu_table_data <- otu_table(ps)
