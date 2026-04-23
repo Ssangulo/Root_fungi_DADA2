@@ -6,11 +6,9 @@ This repository contains the data, scripts, and analysis documents supporting th
 
 ## Supplementary HTML
 
-- GitHub Pages URL (after enabling Pages): `https://<username>.github.io/Root_fungi_DADA2/appendix.html`
-- Repository copy of rendered HTML: `docs/appendix.html`
+- GitHub Pages URL: https://ssangulo.github.io/Root_fungi_DADA2/
+- Repository copy of rendered HTML: `Appendix_HTML.html`
 - Quarto source: `Analysis_pipeline_HTMLformat - original.qmd`
-
-The HTML appendix is designed for readability and navigation (table of contents, section anchors, collapsible code, and copyable code blocks).
 
 ## Repository contents
 
@@ -22,9 +20,9 @@ Scripts to process Illumina ITS2 reads from *Gaultheria myrsinoides* roots sampl
 
 | File | Description |
 | ---- | ----------- |
-| `Analysis_pipeline_HTMLformat - original.qmd` | Quarto source file for the supplementary HTML document. |
-| `docs/appendix.html` | **Main reproducibility document.** Rendered supplementary HTML with all analyses, figures, and tables. Open in any browser. |
-| `Analysis_pipeline_PDF.qmd` | Quarto source file for the PDF appendix. Renders a clean, code-free version of the supplementary material for journal submission. |
+| `Analysis_pipeline.qmd` | Quarto source file for the supplementary HTML document. |
+| `Appendix_HTML.html` | **Main reproducibility document.** Rendered supplementary HTML with all analyses, figures, and tables. Open in any browser. |
+| `Appendix_PDF.pdf` | PDF code-free version of the supplementary material for journal submission. |
 
 ### Data and outputs
 
@@ -38,6 +36,6 @@ Scripts to process Illumina ITS2 reads from *Gaultheria myrsinoides* roots sampl
 
 ## Reproducibility
 
-All analyses can be reproduced by cloning this repository and rendering `Analysis_pipeline_HTMLformat - original.qmd` from the repository root. Computationally intensive steps (GLLVM fitting, iNEXT3D, NRI/NTI) were executed on a remote Ubuntu server; their outputs are archived in `figures/`, `tables/`, and `objects/` and embedded as static results.
+All analyses can be reproduced by cloning this repository and rendering `Analysis_pipeline.qmd` from the repository root. Computationally intensive steps (GLLVM fitting, iNEXT3D, NRI/NTI) were executed on a remote Ubuntu server; their outputs are archived in `figures/`, `tables/`, and `objects/` and embedded as static results.
 
 Sequence data are deposited at ENA under accession **PRJEB107725**.
