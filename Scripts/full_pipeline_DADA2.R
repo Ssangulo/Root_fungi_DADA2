@@ -1147,19 +1147,19 @@ head(tax_table_summary)
 # pre-filtering reads. A sensitivity check against the top 100 OTUs
 # identified 14 flagged OTUs (63.9% of reads), confirming that the 6
 # dominant host OTUs captured the overwhelming majority of contamination.
-# PlutoF reference file: data/reference/matches_out_taxonomy_nopool.csv
+# PlutoF reference file: objects/matches_out_taxonomy_nopool.csv
 #
 # Steps:
 #   1. Remove host OTUs (Viridiplantae)
 #   2. Remove soil samples (subset to root samples only)
 #   3. Update sample metadata
 #   4. Validate and clean taxonomy labels
-#   5. Merge PCR replicates by Unique_ID (sum OTU counts) -> ps_individual
+#   5. Merge root replicates by Unique_ID (sum OTU counts) -> ps_individual
 # =============================================================================
 
 # OTU IDs flagged as Viridiplantae via PlutoF SH matching of top OTUs
 # by cumulative read abundance (nopool strategy;
-# data/reference/matches_out_taxonomy_nopool.csv)
+# objects/matches_out_taxonomy_nopool.csv)
 host_otus <- c(
   "OTU1", "OTU13615", "OTU14390", "OTU15169", "OTU15933", "OTU2310"
 )

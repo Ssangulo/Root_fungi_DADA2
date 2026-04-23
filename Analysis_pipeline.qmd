@@ -26,7 +26,7 @@ All figures (PNG) and result tables (CSV) are stored within the project reposito
 
 **Data availability.**
 
-Repository: To be provided upon acceptance\
+Repository: [Root_fungi_DADA2](https://github.com/Ssangulo/Root_fungi_DADA2)\
 Sequence data: ENA accession number PRJEB107725\
 Metadata: `Data_S1_metadata.csv, Data_S3_soil.csv`
 
@@ -93,10 +93,10 @@ This study was conducted across four humid páramo regions in the Colombian Ande
 
 Root sampling followed standardized sterile procedures. Fine roots of Gaultheria myrsinoides were excavated using a spade, and 3–5 cm root tips were clipped using a sterilized pruner. Tools were disinfected with 75% ethanol between samples, and gloves were changed between individual plants to minimize contamination. Root fragments were placed into sealed polybags stored in ice-cooled containers in the field. Samples were processed at Universidad ICESI, where roots were rinsed in sterile water to remove debris, dried briefly under a laminar flow hood, and stored at –20°C prior to shipment to Norway, and long-term storage at –80°C. Soil samples (top 15 cm) were collected at each sampling location, and five aliquots of rinse water were retained as laboratory and transport controls.
 
-**Table S1**: GPS coordinates, elevation, and vegetation type classification of the 12 sampling locations across four páramo regions. These sites span the forest–subpáramo–páramo gradient and were used for root and soil sampling.
+**Table S1**: GPS coordinates, elevation, and vegetation type classification of the 12 sampling locations across four páramo regions. These sites span the forest–subpáramo–páramo gradient and were used for root and soil sampling. In each location, 10 root samples were collected from 5 individuals (2 root samples per individual) and 1 soil sample.
 
 |             |                      |                  |                  |                   |               |
-|-------------|----------------------|------------------|------------------|-------------------|---------------|
+|------------|------------|------------|------------|------------|------------|
 | **Site ID** | **Site**             | **Altitude (m)** | **Latitude (N)** | **Longitude (W)** | **Ecosystem** |
 | NV_1        | Páramo La Nevera     | 3828             | 03º30’58.1”      | 076º03’05.4”      | Páramo        |
 | NV_2        | Páramo La Nevera     | 3550             | 03º31’37.7”      | 076º03’38.7”      | Subpáramo     |
@@ -113,12 +113,12 @@ Root sampling followed standardized sterile procedures. Fine roots of Gaultheria
 
 ### 2.2 Read filtering, OTU table, and taxonomic assignment
 
-This section provides supplementary details on sequencing read processing and quality filtering. The full bioinformatic pipeline (including DADA2 processing and replicate filtering) is available in the project repository. Here we report summary tables of read retention and replicate-filtering thresholds used for downstream analyses.
+This section provides supplementary details on sequencing read processing and quality filtering. The full bioinformatic pipeline (including DADA2 processing and replicate filtering) is available in the repository at "/Scripts/full_pipeline_DADA2.R". Here we report summary tables of read retention and replicate-filtering thresholds used for downstream analyses.
 
 **Table S2**: Median read numbers per PCR replicate for environmental samples (root and soil samples) and controls (blank extractions, positive, PCR blank, and tag-jump controls). The read counts are grouped at each stage of the DADA2 pipeline. Blank extraction controls (not containing any biological sample) were performed alongside real sample DNA extractions per each extraction batch. PCR blank controls contained all PCR reagents but no DNA template. Tag-jump controls are PCR reactions containing no primers and no DNA template, used to detect tag-jumping (index hopping). 
 
 |                               |               |              |                         |                     |                           |
-|-------------------------------|---------------|--------------|-------------------------|---------------------|---------------------------|
+|------------|------------|------------|------------|------------|------------|
 |                               | **Raw reads** | **Filtered** | **Merged - Non pooled** | **Merged - Pooled** | **Merged - Pseudopooled** |
 | **Root samples**              | 77,047        | 71,783       | 71,084                  | 70,343              | 71,242                    |
 | **Soil samples**              | 72,158        | 66,555       | 65,311                  | 65,498              | 65,385                    |
@@ -171,13 +171,13 @@ kable(
 
 ![](figures/Fig_S2.png)
 
-**Figure S2**: Taxonomic composition in root samples along the elevational gradient. Relative read abundances are shown at three taxonomic ranks:  A) Phylum, B) Genus and C) Order. Each bar represents an individual root sample, grouped by habitat: Forest (2700-3300 m), Subpáramo (3300-3500 m), and Páramo (3800 m). Study sites are indicated on the y-axis. *Code: see "MicroViz code for taxonomic barplots" below.*
+**Figure S2**: Taxonomic composition in root samples along the elevational gradient. Relative read abundances are shown at three taxonomic ranks:  A) Phylum, B) Genus and C) Order. Each bar represents an individual root sample, grouped by habitat: Forest (2700-3300 m), Subpáramo (3300-3500 m), and Páramo (3800 m). Study sites are indicated on the y-axis.
 
 ------------------------------------------------------------------------
 
 ![](figures/Fig_S3.png)
 
-**Figure S3**: Taxonomic composition in soil samples, collected at each of the sampling locations. Relative read abundances are shown at three taxonomic ranks:  A) Phylum, B) Genus, and C) Order. Each bar represents an individual soil sample, grouped by habitat: Forest (2700-3300 m), Subpáramo (3300-3500 m), and Páramo (3800 m). Study sites are indicated on the y-axis. *Code: see "MicroViz code for taxonomic barplots" below.*
+**Figure S3**: Taxonomic composition in soil samples, collected at each of the sampling locations. Relative read abundances are shown at three taxonomic ranks:  A) Phylum, B) Genus, and C) Order. Each bar represents an individual soil sample, grouped by habitat: Forest (2700-3300 m), Subpáramo (3300-3500 m), and Páramo (3800 m). Study sites are indicated on the y-axis.
 
 ```{r}
 #| eval: false
@@ -310,7 +310,7 @@ genus <- ps_filtered %>%
 
 ## Section 4: Community composition {.page-break-before}
 
-This section provides detailed statistical analyses supporting the patterns of root-associated fungal community composition described in the main text. Several of these analyses form the basis of results reported in the main manuscript; here we document the full model specifications, test statistics, and complementary ordinations to ensure transparency and reproducibility.
+This section provides detailed statistical analyses supporting the patterns of root-associated fungal community composition described in the main text. Several of these analyses form the basis of results reported in the main manuscript; here we document the full model specifications and test statistics to ensure transparency and reproducibility.
 
 We include distance-based redundancy analysis (dbRDA) based on robust Aitchison distances to assess habitat-associated compositional structure while conditioning on site. We further present PERMANOVA results from a balanced subset of samples (NV–DOM) used to test habitat and site effects under a controlled sampling design. In addition, we report a centroid-based turnover model quantifying the magnitude of community change across habitats using the full dataset.
 
@@ -416,7 +416,7 @@ dev.off()
 
 ### 4.2 PERMANOVA and beta-dispersion (Tables S7–S9)
 
-Beta-dispersion tests indicated higher within-habitat variability in forests compared with subpáramo and páramo communities (p \< 0.001), whereas dispersion did not differ among sites (p = 0.526). Because the PERMANOVA was conducted on a balanced subset of samples, the significant effects of habitat, site, and their interaction are interpreted as reflecting genuine compositional differences rather than artifacts of unequal dispersion. *Code: see "Code used to generate Tables S6a-S6c" below.*
+Beta-dispersion tests indicated higher within-habitat variability in forests compared with subpáramo and páramo communities (p \< 0.001), whereas dispersion did not differ among sites (p = 0.526). Because the PERMANOVA was conducted on a balanced subset of samples, the significant effects of habitat, site, and their interaction are interpreted as reflecting genuine compositional differences rather than artifacts of unequal dispersion.
 
 ```{r}
 #| echo: false
@@ -1316,8 +1316,6 @@ kable(
 )
 ```
 
-## ------------------------------------------------------------------------
-
 ```{r}
 #| eval: false
 #| echo: true
@@ -2212,7 +2210,7 @@ Three-panel composite figure combining order-level elevational trends (beta-regr
 
 ![](figures/Figure_4_betareg_GLLVM_combined.png)
 
-**Figure 4**: Elevational trends and OTU-level habitat responses. Panel A: Helotiales relative abundance versus elevation (approximately +10.1% per 100 m, $p=0.016$). Panel B: Sebacinales relative abundance versus elevation (approximately -10.0% per 100 m, $p=0.033$). Panel C: GLLVM heatmap of genus-level coefficients for páramo vs forest and subpáramo vs forest contrasts (9 genera retained).
+**Figure 4**: Elevational trends and OTU-level habitat responses. Panel A: Helotiales relative abundance versus elevation (approximately +10.1% per 100 m, $p=0.016$). Panel B: Sebacinales relative abundance versus elevation (approximately -10.0% per 100 m, $p=0.033$). Panel C: GLLVM heatmap of genus-level coefficients for páramo vs forest and subpáramo vs forest contrasts.
 
 ```{r fig4_combined}
 #| eval: false
@@ -2587,14 +2585,14 @@ kable(
 #| code-fold: true
 #| code-summary: "GLLVM model fitting + coefficient summaries (executed on server)"
 
-# GLLVM analysis was executed on the server due to computational cost.
+# GLLVM analysis was executed on the server.
 # The complete workflow (data filtering, model fitting, diagnostics, and genus-level summaries) is provided in the repository:
 #   scripts/gllvm_analysis.R
 #
 # Key outputs saved:
 #   - figures/Fig_S8_GLLVM_diagnostics.png
 #   - tables/File_S2_GLLVM_table.csv
-#   - objects/fit_nb_2.rds  # fitted model object
+#   - objects/fit_nb_2.rds  # fitted model object - too large to include in repo
 ```
 
 ## Section 7: Functional guilds
@@ -2625,10 +2623,6 @@ Functional guilds from root samples were assigned using FUNGuild based on the cu
 #
 # Figure S7 was generated from these outputs and is included above as a PNG.
 ```
-
-<!-- MOVED: iNEXT3D asymptotic summaries (Tables S16–S19 + generating code) are now in Section 5.4 above. -->
-
-<!-- MOVED: GLLVM section is now Section 6.3 above. -->
 
 ## Section 8: Phylogenetic community structure
 
