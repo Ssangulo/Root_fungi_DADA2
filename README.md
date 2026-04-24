@@ -36,6 +36,6 @@ Scripts to process Illumina ITS2 reads from *Gaultheria myrsinoides* roots sampl
 
 ## Reproducibility
 
-All analyses can be reproduced by cloning this repository and rendering `Analysis_pipeline.qmd` from the repository root. Computationally intensive steps (GLLVM fitting, iNEXT3D, NRI/NTI) were executed on a remote Ubuntu server; their outputs are archived in `figures/`, `tables/`, and `objects/` and embedded as static results.
+All analyses can be reproduced by cloning this repository and rendering `Analysis_pipeline.qmd` from the repository root. Computationally intensive steps (GLLVM fitting, iNEXT3D, NRI/NTI) were executed on a remote HPC; their outputs are archived in `figures/`, `tables/`, and `objects/` and embedded as static results.
 
 Sequence data are deposited at ENA under accession **PRJEB107725**.
