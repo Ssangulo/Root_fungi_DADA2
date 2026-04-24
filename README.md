@@ -1,4 +1,4 @@
-# Root_fungi_DADA2
+# Paramo_SkyIslands_RootFungi
 
 This repository contains the data, scripts, and analysis documents supporting the manuscript:
 
