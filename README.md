@@ -1,4 +1,4 @@
-# Root_fungi_DADA2
+# Paramo_SkyIslands_RootFungi
 
 This repository contains the data, scripts, and analysis documents supporting the manuscript:
 
@@ -6,9 +6,9 @@ This repository contains the data, scripts, and analysis documents supporting th
 
 ## Supplementary HTML
 
-- GitHub Pages URL: https://ssangulo.github.io/Root_fungi_DADA2/
+- Analysis Appendix Page URL: https://ssangulo.github.io/Paramo_SkyIslands_RootFungi/appendix.html
 - Repository copy of rendered HTML: `Appendix_HTML.html`
-- Quarto source: `Analysis_pipeline_HTMLformat - original.qmd`
+- Quarto source: `Analysis_pipeline.qmd`
 
 ## Repository contents
 
@@ -36,6 +36,6 @@ Scripts to process Illumina ITS2 reads from *Gaultheria myrsinoides* roots sampl
 
 ## Reproducibility
 
-All analyses can be reproduced by cloning this repository and rendering `Analysis_pipeline.qmd` from the repository root. Computationally intensive steps (GLLVM fitting, iNEXT3D, NRI/NTI) were executed on a remote Ubuntu server; their outputs are archived in `figures/`, `tables/`, and `objects/` and embedded as static results.
+All analyses can be reproduced by cloning this repository and rendering `Analysis_pipeline.qmd` from the repository root. Computationally intensive steps (GLLVM fitting, iNEXT3D, NRI/NTI) were executed on a remote HPC; their outputs are archived in `figures/`, `tables/`, and `objects/` and embedded as static results.
 
 Sequence data are deposited at ENA under accession **PRJEB107725**.
