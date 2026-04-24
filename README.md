@@ -6,7 +6,7 @@ This repository contains the data, scripts, and analysis documents supporting th
 
 ## Supplementary HTML
 
-- GitHub Pages URL: https://ssangulo.github.io/Paramo_SkyIslands_RootFungi/appendix.html
+- Analysis Appendix Page URL: https://ssangulo.github.io/Paramo_SkyIslands_RootFungi/appendix.html
 - Repository copy of rendered HTML: `Appendix_HTML.html`
 - Quarto source: `Analysis_pipeline.qmd`
 
